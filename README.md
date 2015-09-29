@@ -6,4 +6,4 @@ An application interceptor is added to the `OkHttpClient` created via autoconfig
 
 By supporting `OkHttpClient`, it enables Square's [Retrofit](http://square.github.io/retrofit/) to use ribbon as well.
 
-See [`OkHttpRibbonInterceptorTests`]() for samples.
+See [`OkHttpRibbonInterceptorTests`](https://github.com/spencergibb/okhttp-ribbon/blob/master/src/test/java/org/springframework/cloud/square/okhttp/OkHttpRibbonInterceptorTests.java#L51-L66) for samples.
