@@ -164,7 +164,7 @@ public class RetrofitClientUrlTests {
 		@HEAD("/head")
 		Call<Void> head();
 
-		@Headers({ "Accept: application/vnd.io.spring.cloud.test.v1+json"})
+		@Headers({ "Content-Type: application/vnd.io.spring.cloud.test.v1+json"})
 		@POST("/complex")
 		Call<String> moreComplexContentType(@Body String body);
 
@@ -235,6 +235,7 @@ public class RetrofitClientUrlTests {
 			@RibbonClient(name = "localapp3", configuration = LocalRibbonClientConfiguration.class),
 			@RibbonClient(name = "localapp4", configuration = LocalRibbonClientConfiguration.class)
 	})*/
+	@SuppressWarnings("unused")
 	protected static class Application {
 
 		@RequestMapping(method = GET, path = "/hello")
@@ -306,7 +307,9 @@ public class RetrofitClientUrlTests {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body((String) null);
 		}
 
-		@RequestMapping(method = POST, consumes = "application/vnd.io.spring.cloud.test.v1+json", produces = "application/vnd.io.spring.cloud.test.v1+json", path = "/complex")
+		@RequestMapping(method = POST, path = "/complex",
+				consumes = "application/vnd.io.spring.cloud.test.v1+json",
+				produces = "application/vnd.io.spring.cloud.test.v1+json")
 		String complex(String body) {
 			return "{\"value\":\"OK\"}";
 		}
@@ -349,7 +352,7 @@ public class RetrofitClientUrlTests {
 	@Test
 	public void testRequestMappingClassLevelPropertyReplacement() throws Exception {
 		Response<Hello> response = this.testClient.getHelloUsingPropertyPlaceHolder().execute();
-		assertTrue(response.isSuccessful());
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
 		Hello hello = response.body();
 		assertNotNull("hello was null", hello);
 		assertEquals("hello didn't match", new Hello(OI_TERRA_2), hello);
@@ -358,7 +361,7 @@ public class RetrofitClientUrlTests {
 	@Test
 	public void testSimpleType() throws Exception {
 		Response<Hello> response = this.testClient.getHello().execute();
-		assertTrue(response.isSuccessful());
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
 		Hello hello = response.body();
 		assertNotNull("hello was null", hello);
 		assertEquals("hello didn't match", new Hello(HELLO_WORLD_1), hello);
@@ -367,7 +370,7 @@ public class RetrofitClientUrlTests {
 	@Test
 	public void testSimpleTypeBody() throws Exception {
 		Response<Hello> response = this.testClient.postHello(new Hello("postHello")).execute();
-		assertTrue(response.isSuccessful());
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
 		Hello hello = response.body();
 		assertNotNull("hello was null", hello);
 		assertEquals("hello didn't match", new Hello("postHello"), hello);
@@ -376,7 +379,7 @@ public class RetrofitClientUrlTests {
 	@Test
 	public void testGenericType() throws Exception {
 		Response<List<Hello>> response = this.testClient.getHellos().execute();
-		assertTrue(response.isSuccessful());
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
 		List<Hello> hellos = response.body();
 		assertNotNull("hellos was null", hellos);
 		assertEquals("hellos didn't match", hellos, getHelloList());
@@ -385,7 +388,7 @@ public class RetrofitClientUrlTests {
 	@Test
 	public void testRequestInterceptors() throws Exception {
 		Response<List<String>> response = this.testClient.getHelloHeaders().execute();
-		assertTrue(response.isSuccessful());
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
 		List<String> headers = response.body();
 		assertNotNull("headers was null", headers);
 		assertTrue("headers didn't contain myheader1value",
@@ -413,7 +416,7 @@ public class RetrofitClientUrlTests {
 	public void testServiceId() throws Exception {
 		assertNotNull("testClientServiceId was null", this.testClientServiceId);
 		Response<Hello> response = this.testClientServiceId.getHello().execute();
-		assertTrue(response.isSuccessful());
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
 		Hello hello = response.body();
 		assertNotNull("The hello response was null", hello);
 		assertEquals("first hello didn't match", new Hello(HELLO_WORLD_1), hello);
@@ -452,7 +455,7 @@ public class RetrofitClientUrlTests {
 	@Test
 	public void testNoContentResponse() throws Exception {
 		Response<Void> response = testClient.noContent().execute();
-		assertTrue(response.isSuccessful());
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
 		assertNotNull("response was null", response);
 		assertEquals("status code was wrong", HttpStatus.NO_CONTENT.value(),
 				response.code());
@@ -461,18 +464,18 @@ public class RetrofitClientUrlTests {
 	@Test
 	public void testHeadResponse() throws Exception {
 		Response<Void> response = testClient.head().execute();
-		assertTrue(response.isSuccessful());
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
 		assertNotNull("response was null", response);
 		assertEquals("status code was wrong", HttpStatus.OK.value(), response.code());
 	}
 
 	@Test
 	public void testMoreComplexHeader() throws Exception {
-		Response<String> response = testClient.moreComplexContentType("{\"value\":\"OK\"}").execute();
+		String body = "{\"value\":\"OK\"}";
+		Response<String> response = testClient.moreComplexContentType(body).execute();
 		assertNotNull("response was null", response);
-		assertTrue(response.isSuccessful());
-		assertEquals("didn't respond with {\"value\":\"OK\"}", "{\"value\":\"OK\"}",
-				response);
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
+		assertEquals("response was incorrect", body, response.body());
 	}
 
 	@Test
