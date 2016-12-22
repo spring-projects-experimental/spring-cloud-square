@@ -16,14 +16,20 @@
 
 package org.springframework.cloud.retrofit;
 
-import okhttp3.OkHttpClient;
+import java.util.Collections;
+import java.util.Map;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import okhttp3.OkHttpClient;
+import retrofit2.CallAdapter;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 
@@ -79,54 +85,30 @@ class RetrofitClientFactoryBean implements FactoryBean<Object>, InitializingBean
 	}
 
 	protected Retrofit.Builder retrofit(RetrofitContext context) {
-		//RetrofitLoggerFactory loggerFactory = get(context, RetrofitLoggerFactory.class);
-		//Logger logger = loggerFactory.create(this.type);
-
-		// @formatter:off
 		Retrofit.Builder builder = get(context, Retrofit.Builder.class);
-				// required values
-				//.logger(logger)
-				//.encoder(get(context, Encoder.class))
-				//.decoder(get(context, Decoder.class))
-				//.contract(get(context, Contract.class));
-		// @formatter:on
-
-		// optional values
-		/*Logger.Level level = getOptional(context, Logger.Level.class);
-		if (level != null) {
-			builder.logLevel(level);
-		}
-		Retryer retryer = getOptional(context, Retryer.class);
-		if (retryer != null) {
-			builder.retryer(retryer);
-		}
-		ErrorDecoder errorDecoder = getOptional(context, ErrorDecoder.class);
-		if (errorDecoder != null) {
-			builder.errorDecoder(errorDecoder);
-		}
-		Request.Options options = getOptional(context, Request.Options.class);
-		if (options != null) {
-			builder.options(options);
-		}
-		Map<String, RequestInterceptor> requestInterceptors = context.getInstances(
-				this.name, RequestInterceptor.class);
-		if (requestInterceptors != null) {
-			builder.requestInterceptors(requestInterceptors.values());
-		}*/
 
 		OkHttpClient httpClient = getOptional(context, OkHttpClient.class);
 		if (httpClient != null) {
 			builder.client(httpClient);
 		}
 
-		Converter.Factory converterFactory = getOptional(context, Converter.Factory.class);
-		if (converterFactory != null) {
-			builder.addConverterFactory(converterFactory);
-		}
+		Map<String, Converter.Factory> converterFactories = getInstances(context, Converter.Factory.class);
+		converterFactories.values().forEach(builder::addConverterFactory);
+
+		Map<String, CallAdapter.Factory> callAdapterFactories = getInstances(context, CallAdapter.Factory.class);
+		callAdapterFactories.values().forEach(builder::addCallAdapterFactory);
 
 		builder.validateEagerly(true); //TODO: allow customization
 
 		return builder;
+	}
+
+	protected <T> Map<String, T> getInstances(RetrofitContext context, Class<T> type) {
+		Map<String, T> instances = context.getInstances(this.name, type);
+		if (instances == null) {
+			return Collections.emptyMap();
+		}
+		return instances;
 	}
 
 	protected <T> T get(RetrofitContext context, Class<T> type) {
@@ -191,7 +173,13 @@ class RetrofitClientFactoryBean implements FactoryBean<Object>, InitializingBean
 				this.type, this.name, url));*/
 
 		builder.baseUrl(this.url);
-		return builder.build().create(this.type);
+		Retrofit retrofit = builder.build();
+
+		// add retrofit to this.names context as a bean
+		AnnotationConfigApplicationContext applicationContext = context.getContext(this.name);
+		applicationContext.registerBean(Retrofit.class, () -> retrofit);
+
+		return retrofit.create(this.type);
 	}
 
 	@Override

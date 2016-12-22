@@ -18,9 +18,12 @@ package org.springframework.cloud.retrofit;
 
 import java.util.List;
 
+import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +33,7 @@ import org.springframework.format.support.DefaultFormattingConversionService;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import reactor.core.scheduler.Scheduler;
 import retrofit2.Retrofit;
 
 /**
@@ -66,5 +70,24 @@ public class DefaultRetrofitClientConfiguration {
 	@ConditionalOnMissingBean
 	public SpringConverterFactory springConverterFactory(ConversionService conversionService) {
 		return new SpringConverterFactory(messageConverters, conversionService);
+	}
+
+	@Configuration
+	@ConditionalOnClass(ReactorCallAdapterFactory.class)
+	@ConditionalOnProperty(value = "retrofit.reactor.enabled", matchIfMissing = true)
+	protected static class RetrofitReactorConfiguration {
+
+		@Autowired(required = false)
+		private Scheduler scheduler;
+
+		@Bean
+		@ConditionalOnMissingBean
+		public ReactorCallAdapterFactory reactorCallAdapterFactory() {
+			if (this.scheduler != null) {
+				return ReactorCallAdapterFactory.createWithScheduler(scheduler);
+			}
+			return ReactorCallAdapterFactory.create();
+		}
+
 	}
 }

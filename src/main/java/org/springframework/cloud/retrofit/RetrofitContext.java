@@ -17,6 +17,7 @@
 package org.springframework.cloud.retrofit;
 
 import org.springframework.cloud.context.named.NamedContextFactory;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
  * A factory that creates instances of retrofit classes. It creates a Spring
@@ -25,10 +26,14 @@ import org.springframework.cloud.context.named.NamedContextFactory;
  * @author Spencer Gibb
  * @author Dave Syer
  */
-public class RetrofitContext extends NamedContextFactory<RetrofitClientSpecification> {
+class RetrofitContext extends NamedContextFactory<RetrofitClientSpecification> {
 
-	public RetrofitContext() {
+	RetrofitContext() {
 		super(DefaultRetrofitClientConfiguration.class, "retrofit", "retrofit.client.name");
 	}
 
+	@Override
+	public AnnotationConfigApplicationContext getContext(String name) {
+		return super.getContext(name);
+	}
 }
