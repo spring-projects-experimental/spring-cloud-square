@@ -19,7 +19,7 @@ package org.springframework.cloud.retrofit;
 import org.springframework.cloud.context.named.NamedContextFactory;
 
 /**
- * A factory that creates instances of feign classes. It creates a Spring
+ * A factory that creates instances of retrofit classes. It creates a Spring
  * ApplicationContext per client name, and extracts the beans that it needs from there.
  *
  * @author Spencer Gibb

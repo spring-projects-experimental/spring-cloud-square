@@ -25,8 +25,8 @@ import java.lang.annotation.Target;
 import org.springframework.context.annotation.Import;
 
 /**
- * Scans for interfaces that declare they are feign clients (via {@link RetrofitClient
- * <code>@FeignClient</code>}). Configures component scanning directives for use with
+ * Scans for interfaces that declare they are clients (via {@link RetrofitClient
+ * <code>@RetrofitClient</code>}). Configures component scanning directives for use with
  * {@link org.springframework.context.annotation.Configuration
  * <code>@Configuration</code>} classes.
  *
@@ -72,7 +72,7 @@ public @interface EnableRetrofitClients {
 	Class<?>[] basePackageClasses() default {};
 
 	/**
-	 * A custom <code>@Configuration</code> for all feign clients. Can contain override
+	 * A custom <code>@Configuration</code> for all clients. Can contain override
 	 * <code>@Bean</code> definition for the pieces that make up the client.
 	 *
 	 * @see DefaultRetrofitClientConfiguration for the defaults
@@ -80,7 +80,7 @@ public @interface EnableRetrofitClients {
 	Class<?>[] defaultConfiguration() default {};
 
 	/**
-	 * List of classes annotated with @FeignClient. If not empty, disables classpath scanning.
+	 * List of classes annotated with @RetrofitClient. If not empty, disables classpath scanning.
 	 * @return
 	 */
 	Class<?>[] clients() default {};

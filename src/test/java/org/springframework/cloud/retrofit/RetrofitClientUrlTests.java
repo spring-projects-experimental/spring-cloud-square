@@ -19,27 +19,19 @@ package org.springframework.cloud.retrofit;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.Future;
 
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
@@ -54,7 +46,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -63,16 +54,17 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Response;
-import retrofit2.Retrofit;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.HEAD;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
-import retrofit2.http.QueryMap;
 
 //import org.springframework.cloud.retrofit.ribbon.LoadBalancerRetrofitClient;
 //import org.springframework.cloud.netflix.ribbon.RibbonClient;
@@ -174,7 +166,7 @@ public class RetrofitClientUrlTests {
 
 		@Headers({ "Accept: application/vnd.io.spring.cloud.test.v1+json"})
 		@POST("/complex")
-		Call<String> moreComplexContentType(String body);
+		Call<String> moreComplexContentType(@Body String body);
 
 		@GET("/tostring")
 		Call<String> getToString(@Query("arg") Arg arg);
@@ -185,25 +177,25 @@ public class RetrofitClientUrlTests {
 
 	public static class TestClientConfig {
 
-		/*@Bean
-		public RequestInterceptor interceptor1() {
-			return new RequestInterceptor() {
-				@Override
-				public void apply(RequestTemplate template) {
-					template.header(MYHEADER1, "myheader1value");
-				}
+		@Bean
+		public Interceptor interceptor1() {
+			return chain -> {
+				Request request = chain.request().newBuilder()
+						.addHeader(MYHEADER1, "myheader1value")
+						.build();
+				return chain.proceed(request);
 			};
 		}
 
 		@Bean
-		public RequestInterceptor interceptor2() {
-			return new RequestInterceptor() {
-				@Override
-				public void apply(RequestTemplate template) {
-					template.header(MYHEADER2, "myheader2value");
-				}
+		public Interceptor interceptor2() {
+			return chain -> {
+				Request request = chain.request().newBuilder()
+						.addHeader(MYHEADER2, "myheader2value")
+						.build();
+				return chain.proceed(request);
 			};
-		}*/
+		}
 	}
 
 	@RetrofitClient(name = "localapp1", url = "${retrofit.client.url.tests.url}")
@@ -506,17 +498,12 @@ public class RetrofitClientUrlTests {
 	@Configuration
 	public static class TestDefaultRetrofitConfig {
 		@Bean
-		public OkHttpClient okHttpClient() {
+		public Interceptor loggingInterceptor() {
 			HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
 			interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-			return new OkHttpClient.Builder()
-					.addInterceptor(interceptor)
-					.build();
+			return interceptor;
 		}
-		/*@Bean
-		Logger.Level retrofitLoggerLevel() {
-			return Logger.Level.FULL;
-		}*/
+
 	}
 
 	// Load balancer with fixed server list for "local" pointing to localhost

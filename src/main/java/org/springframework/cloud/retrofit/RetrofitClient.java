@@ -28,7 +28,7 @@ import org.springframework.core.annotation.AliasFor;
  * Annotation for interfaces declaring that a REST client with that interface should be
  * created (e.g. for autowiring into another component). If ribbon is available it will be
  * used to load balance the backend requests, and the load balancer can be configured
- * using a <code>@RibbonClient</code> with the same name (i.e. value) as the feign client.
+ * using a <code>@RibbonClient</code> with the same name (i.e. value) as the client.
  *
  * @author Spencer Gibb
  */
@@ -52,7 +52,7 @@ public @interface RetrofitClient {
 	String name() default "";
 	
 	/**
-	 * Sets the <code>@Qualifier</code> value for the feign client.
+	 * Sets the <code>@Qualifier</code> value for the client.
 	 */
 	String qualifier() default "";
 
@@ -62,7 +62,7 @@ public @interface RetrofitClient {
 	String url() default "";
 
 	/**
-	 * A custom <code>@Configuration</code> for the feign client. Can contain override
+	 * A custom <code>@Configuration</code> for the client. Can contain override
 	 * <code>@Bean</code> definition for the pieces that make up the client.
 	 *
 	 * @see DefaultRetrofitClientConfiguration for the defaults
