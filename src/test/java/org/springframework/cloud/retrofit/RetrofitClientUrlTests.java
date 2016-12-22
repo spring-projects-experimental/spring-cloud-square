@@ -27,6 +27,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -65,6 +66,7 @@ import retrofit2.http.HEAD;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
+import retrofit2.http.Url;
 
 //import org.springframework.cloud.retrofit.ribbon.LoadBalancerRetrofitClient;
 //import org.springframework.cloud.netflix.ribbon.RibbonClient;
@@ -77,7 +79,8 @@ import retrofit2.http.Query;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = RetrofitClientUrlTests.Application.class,
 		properties = { "spring.application.name=retrofitclienttest",
-		"logging.level.org.springframework.cloud.retrofit.valid=DEBUG",
+				"logging.level.org.springframework.cloud.retrofit.valid=DEBUG",
+				"retrofitClient.dynamicUrlPath=/hello2"
 		 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
 public class RetrofitClientUrlTests {
@@ -139,8 +142,8 @@ public class RetrofitClientUrlTests {
 		@POST("/hello")
 		Call<Hello> postHello(@Body Hello hello);
 
-		@GET("${retrofitClient.methodLevelRequestMappingPath}")
-		Call<Hello> getHelloUsingPropertyPlaceHolder();
+		@GET
+		Call<Hello> getHelloWithDynamicUrl(@Url String url);
 
 		//@GET("/hello")
 		//Single<Hello> getHelloSingle();
@@ -354,9 +357,12 @@ public class RetrofitClientUrlTests {
 		assertNotNull("invocationHandler was null", invocationHandler);
 	}
 
+	@Value("${retrofitClient.dynamicUrlPath}")
+	private String urlAsSpringProperty;
+
 	@Test
-	public void testRequestMappingClassLevelPropertyReplacement() throws Exception {
-		Response<Hello> response = this.testClient.getHelloUsingPropertyPlaceHolder().execute();
+	public void testDynamicUrl() throws Exception {
+		Response<Hello> response = this.testClient.getHelloWithDynamicUrl(urlAsSpringProperty).execute();
 		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
 		Hello hello = response.body();
 		assertNotNull("hello was null", hello);
