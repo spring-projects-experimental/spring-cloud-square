@@ -63,6 +63,7 @@ import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.HEAD;
+import retrofit2.http.Header;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
@@ -78,9 +79,11 @@ import retrofit2.http.Url;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = RetrofitClientUrlTests.Application.class,
-		properties = { "spring.application.name=retrofitclienttest",
-				"logging.level.org.springframework.cloud.retrofit.valid=DEBUG",
-				"retrofitClient.dynamicUrlPath=/hello2"
+		properties = { "spring.application.name=retrofitclienturltest",
+				"logging.level.org.springframework.cloud.retrofit=DEBUG",
+				"retrofitClient.dynamicUrlPath=/hello2",
+				"retrofitClient.myDynamicHeader=myDynamicHeaderValue",
+				"retrofit.reactor.enabled=false",
 		 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
 public class RetrofitClientUrlTests {
@@ -108,9 +111,6 @@ public class RetrofitClientUrlTests {
 
 	@Autowired
 	private TestClientServiceId testClientServiceId;
-
-	//@Autowired
-	//private Retrofit retrofit;
 
 	protected enum Arg {
 		A, B;
@@ -145,9 +145,6 @@ public class RetrofitClientUrlTests {
 		@GET
 		Call<Hello> getHelloWithDynamicUrl(@Url String url);
 
-		//@GET("/hello")
-		//Single<Hello> getHelloSingle();
-
 		@GET("/hellos")
 		Call<List<Hello>> getHellos();
 
@@ -157,14 +154,11 @@ public class RetrofitClientUrlTests {
 		@GET("/helloheaders")
 		Call<List<String>> getHelloHeaders();
 
-		//@GET("/helloheadersplaceholders", headers = "myPlaceholderHeader=${retrofitClient.myPlaceholderHeader}")
-		//Call<String getHelloHeadersPlaceholders();
+		@GET("/dynamicheaders")
+		Call<String> getDynamicHeader(@Header("myDynamicHeader") String myDynamicHeader);
 
 		@GET("/helloparams")
 		Call<List<String>> getParams(@Query("params") String a, @Query("params") String b, @Query("params") String c);
-
-		//@GET("/hellos")
-		//HystrixCommand<List<Hello>> getHellosHystrix();
 
 		@GET("/noContent")
 		Call<Void> noContent();
@@ -211,24 +205,6 @@ public class RetrofitClientUrlTests {
 		@GET("/hello")
 		Call<Hello> getHello();
 	}
-
-	/*@RetrofitClient(name = "localapp3")
-	protected interface HystrixClient {
-		@GET("/fail")
-		Single<Hello> failSingle();
-
-		@GET("/fail")
-		Hello fail();
-
-		@GET("/fail")
-		HystrixCommand<Hello> failCommand();
-
-		@GET("/fail")
-		Observable<Hello> failObservable();
-
-		@GET("/fail")
-		Future<Hello> failFuture();
-	}*/
 
 	@Configuration
 	@EnableAutoConfiguration
@@ -284,10 +260,10 @@ public class RetrofitClientUrlTests {
 			return headers;
 		}
 
-		@RequestMapping(method = GET, path = "/helloheadersplaceholders")
-		public String getHelloHeadersPlaceholders(
-				@RequestHeader("myPlaceholderHeader") String myPlaceholderHeader) {
-			return myPlaceholderHeader;
+		@RequestMapping(method = GET, path = "/dynamicheaders")
+		public String getDynamicHeader(
+				@RequestHeader("myDynamicHeader") String myDynamicHeader) {
+			return myDynamicHeader;
 		}
 
 		@RequestMapping(method = GET, path = "/helloparams")
@@ -408,20 +384,17 @@ public class RetrofitClientUrlTests {
 				headers.contains("myheader2value"));
 	}
 
-	/*@Test
-	public void testHeaderPlaceholders() {
-		String header = this.testClient.getHelloHeadersPlaceholders();
-		assertNotNull("header was null", header);
-		assertEquals("header was wrong", "myPlaceholderHeaderValue", header);
-	}
+	@Value("${retrofitClient.myDynamicHeader}")
+	private String myDynamicHeader;
 
 	@Test
-	public void testRetrofitClientType() throws IllegalAccessException {
-		assertThat(this.retrofitClient, is(instanceOf(LoadBalancerRetrofitClient.class)));
-		LoadBalancerRetrofitClient client = (LoadBalancerRetrofitClient) this.retrofitClient;
-		Client delegate = client.getDelegate();
-		assertThat(delegate, is(instanceOf(retrofit.Client.Default.class)));
-	}*/
+	public void testDynamicHeaders() throws Exception {
+		Response<String> response = this.testClient.getDynamicHeader(myDynamicHeader).execute();
+		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
+		String header = response.body();
+		assertNotNull("header was null", header);
+		assertEquals("header was wrong", "myDynamicHeaderValue", header);
+	}
 
 	@Test
 	public void testServiceId() throws Exception {
@@ -441,27 +414,6 @@ public class RetrofitClientUrlTests {
 		assertNotNull("params was null", params);
 		assertEquals("params size was wrong", 3, params.size());
 	}
-
-	/*@Test
-	public void testHystrixCommand() {
-		HystrixCommand<List<Hello>> command = this.testClient.getHellosHystrix();
-		assertNotNull("command was null", command);
-		assertEquals(
-				"Hystrix command group name should match the name of the retrofit client",
-				"localapp", command.getCommandGroup().name());
-		List<Hello> hellos = command.execute();
-		assertNotNull("hellos was null", hellos);
-		assertEquals("hellos didn't match", hellos, getHelloList());
-	}
-
-	@Test
-	public void testSingle() {
-		Single<Hello> single = this.testClient.getHelloSingle();
-		assertNotNull("single was null", single);
-		Hello hello = single.toBlocking().value();
-		assertNotNull("hello was null", hello);
-		assertEquals("first hello didn't match", new Hello(HELLO_WORLD_1), hello);
-	}*/
 
 	@Test
 	public void testNoContentResponse() throws Exception {
@@ -499,11 +451,6 @@ public class RetrofitClientUrlTests {
 	public void testObjectAsQueryParam() throws Exception {
 		Response<String> response = testClient.getToString(new OtherArg("foo")).execute();
 		assertEquals("foo", response.body());
-	}
-
-	@Test
-	public void namedRetrofitClientWorks() {
-		//assertNotNull("namedHystrixClient was null", this.namedHystrixClient);
 	}
 
 	@Data
