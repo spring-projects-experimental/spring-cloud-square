@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -24,9 +25,11 @@ public class SpringConverterFactory extends Converter.Factory {
 	private static final Log log = LogFactory.getLog(SpringConverterFactory.class);
 
 	private ObjectFactory<HttpMessageConverters> messageConverters;
+	private final ConversionService conversionService;
 
-	public SpringConverterFactory(ObjectFactory<HttpMessageConverters> messageConverters) {
+	public SpringConverterFactory(ObjectFactory<HttpMessageConverters> messageConverters, ConversionService conversionService) {
 		this.messageConverters = messageConverters;
+		this.conversionService = conversionService;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -83,6 +86,12 @@ public class SpringConverterFactory extends Converter.Factory {
 
 	@Override
 	public Converter<?, String> stringConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
-		return super.stringConverter(type, annotations, retrofit);
+		if (type instanceof Class) {
+			Class<?> aClass = (Class<?>) type;
+			if (this.conversionService.canConvert(aClass, String.class)) {
+				return (Converter<Object, String>) value -> this.conversionService.convert(value, String.class);
+			}
+		}
+		return null;
 	}
 }

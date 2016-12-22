@@ -25,6 +25,8 @@ import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.format.support.DefaultFormattingConversionService;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -54,10 +56,15 @@ public class DefaultRetrofitClientConfiguration {
 		return new Retrofit.Builder();
 	}
 
+	@Bean
+	@ConditionalOnMissingBean(ConversionService.class)
+	public DefaultFormattingConversionService retrofitConversionService() {
+		return new DefaultFormattingConversionService();
+	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public SpringConverterFactory springConverterFactory() {
-		return new SpringConverterFactory(messageConverters);
+	public SpringConverterFactory springConverterFactory(ConversionService conversionService) {
+		return new SpringConverterFactory(messageConverters, conversionService);
 	}
 }

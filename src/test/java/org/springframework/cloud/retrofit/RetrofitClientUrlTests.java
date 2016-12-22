@@ -124,6 +124,11 @@ public class RetrofitClientUrlTests {
 		public OtherArg(String value) {
 			this.value = value;
 		}
+
+		@Override
+		public String toString() {
+			return this.value;
+		}
 	}
 
 	@RetrofitClient(name = "localapp", url = "${retrofit.client.url.tests.url}", configuration = TestClientConfig.class)
@@ -479,11 +484,15 @@ public class RetrofitClientUrlTests {
 	}
 
 	@Test
-	public void testConvertingExpander() {
-		assertEquals(Arg.A.toString(), testClient.getToString(Arg.A));
-		assertEquals(Arg.B.toString(), testClient.getToString(Arg.B));
+	public void testEnumAsQueryParam() throws Exception {
+		assertEquals(Arg.A.toString(), testClient.getToString(Arg.A).execute().body());
+		assertEquals(Arg.B.toString(), testClient.getToString(Arg.B).execute().body());
+	}
 
-		assertEquals("foo", testClient.getToString(new OtherArg("foo")));
+	@Test
+	public void testObjectAsQueryParam() throws Exception {
+		Response<String> response = testClient.getToString(new OtherArg("foo")).execute();
+		assertEquals("foo", response.body());
 	}
 
 	@Test
