@@ -37,8 +37,7 @@ public class OkHttpRibbonAutoConfiguration {
 	//TODO: fix this so customizer works
 	@Bean
 	@LoadBalanced
-	public OkHttpClient okHttpClient(List<Interceptor> interceptors) {
-		OkHttpClient.Builder builder = new OkHttpClient.Builder();
+	public OkHttpClient okHttpClient(@LoadBalanced OkHttpClient.Builder builder, List<Interceptor> interceptors) {
 		interceptors.forEach(builder::addInterceptor);
 		return builder.build();
 	}

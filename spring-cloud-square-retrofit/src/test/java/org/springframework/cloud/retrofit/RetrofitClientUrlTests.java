@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -56,6 +57,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -77,9 +79,8 @@ import retrofit2.http.Url;
 /**
  * @author Spencer Gibb
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = RetrofitClientUrlTests.Application.class,
-		properties = { "spring.application.name=retrofitclienturltest",
+@RunWith(SpringRunner.class)
+@SpringBootTest( properties = { "spring.application.name=retrofitclienturltest",
 				"logging.level.org.springframework.cloud.retrofit=DEBUG",
 				"retrofitClient.dynamicUrlPath=/hello2",
 				"retrofitClient.myDynamicHeader=myDynamicHeaderValue",
@@ -206,7 +207,7 @@ public class RetrofitClientUrlTests {
 		Call<Hello> getHello();
 	}
 
-	@Configuration
+	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@RestController
 	@EnableRetrofitClients(clients = { TestClientServiceId.class, TestClient.class,
@@ -221,6 +222,10 @@ public class RetrofitClientUrlTests {
 	})*/
 	@SuppressWarnings("unused")
 	protected static class Application {
+		@Bean
+		public OkHttpClient.Builder builder() {
+			return new OkHttpClient.Builder();
+		}
 
 		@RequestMapping(method = GET, path = "/hello")
 		public Hello getHello() {

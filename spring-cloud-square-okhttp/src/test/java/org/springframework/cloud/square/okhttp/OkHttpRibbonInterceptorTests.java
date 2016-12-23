@@ -3,6 +3,7 @@ package org.springframework.cloud.square.okhttp;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,7 +11,6 @@ import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,8 +34,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = OkHttpRibbonInterceptorTests.TestApp.class,
-		webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 public class OkHttpRibbonInterceptorTests {
 
 	//The serviceId that ribbon will resolve to host:port
@@ -93,7 +92,7 @@ public class OkHttpRibbonInterceptorTests {
 		assertThat("response was wrong", hello, is(equalTo("hello okhttp")));
 	}
 
-	@Configuration
+	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@RestController
 	// since this is a test we're giving a very specific ribbon configuration
@@ -107,13 +106,13 @@ public class OkHttpRibbonInterceptorTests {
 			return new Hello("hello okhttp");
 		}
 
-		/*@Bean
+		@Bean
 		@LoadBalanced
 		public OkHttpClient.Builder okHttpClientBuilder() {
 			return new OkHttpClient.Builder();
 		}
 
-		@Bean
+		/*@Bean
 		@LoadBalanced
 		public OkHttpClient okHttpClient(@LoadBalanced OkHttpClient.Builder builder) {
 			return builder.build();

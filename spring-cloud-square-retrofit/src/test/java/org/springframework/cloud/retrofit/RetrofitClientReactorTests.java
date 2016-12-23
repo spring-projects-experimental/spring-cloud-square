@@ -25,6 +25,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,6 +54,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -64,9 +66,8 @@ import retrofit2.http.GET;
 /**
  * @author Spencer Gibb
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = RetrofitClientReactorTests.Application.class,
-		properties = { "spring.application.name=retrofitclientreactortest",
+@RunWith(SpringRunner.class)
+@SpringBootTest(properties = { "spring.application.name=retrofitclientreactortest",
 				"logging.level.org.springframework.cloud.retrofit=DEBUG",
 		 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
@@ -138,18 +139,22 @@ public class RetrofitClientReactorTests {
 		Flux<Hello> getHelloFlux();
 	}
 
-
 	public static class TestClientConfig {
 
 	}
 
-	@Configuration
+	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@RestController
 	@EnableRetrofitClients(clients = { TestClient.class, },
 			defaultConfiguration = TestDefaultRetrofitConfig.class)
 	@SuppressWarnings("unused")
 	protected static class Application {
+		@Bean
+		public OkHttpClient.Builder builder() {
+			return new OkHttpClient.Builder();
+		}
+
 
 		@RequestMapping(method = GET, path = "/hello")
 		public Hello getHello() {

@@ -1,61 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-square</artifactId>
+	<parent>
+		<artifactId>spring-cloud-dependencies-parent</artifactId>
+		<groupId>org.springframework.cloud</groupId>
+		<version>1.3.0.BUILD-SNAPSHOT</version>
+        <relativePath/>
+	</parent>
+	<artifactId>spring-cloud-square-dependencies</artifactId>
 	<version>0.1.0.BUILD-SNAPSHOT</version>
 	<packaging>pom</packaging>
-
-	<name>Spring Cloud Square</name>
-	<description>Spring Cloud Square</description>
-
-	<parent>
-		<groupId>org.springframework.cloud</groupId>
-		<artifactId>spring-cloud-build</artifactId>
-		<version>1.3.0.BUILD-SNAPSHOT</version>
-		<relativePath />
-	</parent>
-
+	<name>Spring Cloud Square Dependencies</name>
+	<description>Spring Cloud Square Dependencies</description>
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.version>1.8</java.version>
-		<spring-boot.version>2.0.0.BUILD-SNAPSHOT</spring-boot.version>
-		<spring-cloud-commons.version>1.2.0.BUILD-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-netflix.version>1.3.0.BUILD-SNAPSHOT</spring-cloud-netflix.version>
+		<okhttp.version>3.5.0</okhttp.version>
+		<retrofit.version>2.1.0</retrofit.version>
+		<retrofit-reactor.version>1.0.0</retrofit-reactor.version>
 	</properties>
-	
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-square-dependencies</artifactId>
-				<version>${project.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>okhttp</artifactId>
+				<version>${okhttp.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-netflix-dependencies</artifactId>
-				<version>${spring-cloud-netflix.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>logging-interceptor</artifactId>
+				<version>${okhttp.version}</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-commons-dependencies</artifactId>
-				<version>${spring-cloud-commons.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
+				<groupId>com.squareup.retrofit2</groupId>
+				<artifactId>retrofit</artifactId>
+				<version>${retrofit.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.squareup.retrofit2</groupId>
+				<artifactId>converter-scalars</artifactId>
+				<version>${retrofit.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.squareup.retrofit2</groupId>
+				<artifactId>converter-jackson</artifactId>
+				<version>${retrofit.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.jakewharton.retrofit</groupId>
+				<artifactId>retrofit2-reactor-adapter</artifactId>
+				<version>${retrofit-reactor.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	<modules>
-		<module>spring-cloud-square-dependencies</module>
-		<module>spring-cloud-square-okhttp</module>
-		<module>spring-cloud-square-retrofit</module>
-	</modules>	
 	<profiles>
 		<profile>
 			<id>spring</id>
@@ -108,16 +105,7 @@
 						<enabled>false</enabled>
 					</snapshots>
 				</pluginRepository>
-				<pluginRepository>
-					<id>spring-releases</id>
-					<name>Spring Releases</name>
-					<url>https://repo.spring.io/libs-release-local</url>
-					<snapshots>
-						<enabled>false</enabled>
-					</snapshots>
-				</pluginRepository>
 			</pluginRepositories>
 		</profile>
 	</profiles>
-
 </project>
