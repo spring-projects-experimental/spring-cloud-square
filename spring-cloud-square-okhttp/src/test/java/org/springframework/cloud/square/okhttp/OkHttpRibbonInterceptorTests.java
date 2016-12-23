@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
@@ -106,14 +107,26 @@ public class OkHttpRibbonInterceptorTests {
 			return new Hello("hello okhttp");
 		}
 
+		/*@Bean
+		@LoadBalanced
+		public OkHttpClient.Builder okHttpClientBuilder() {
+			return new OkHttpClient.Builder();
+		}
+
 		@Bean
-		public TestAppClient testAppClient(OkHttpClient httpClient) {
+		@LoadBalanced
+		public OkHttpClient okHttpClient(@LoadBalanced OkHttpClient.Builder builder) {
+			return builder.build();
+		}*/
+
+		@Bean
+		public TestAppClient testAppClient(@LoadBalanced OkHttpClient okHttpClient) {
 			Retrofit retrofit = new Retrofit.Builder()
 					// here you use a service id, or virtual hostname
 					// rather than an actual host:port, ribbon will
 					// resolve it
 					.baseUrl("http://testapp")
-					.client(httpClient)
+					.client(okHttpClient)
 					.addConverterFactory(JacksonConverterFactory.create())
 					.build();
 			return retrofit.create(TestAppClient.class);

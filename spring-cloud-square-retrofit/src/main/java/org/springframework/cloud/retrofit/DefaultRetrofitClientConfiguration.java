@@ -47,8 +47,7 @@ public class DefaultRetrofitClientConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public OkHttpClient okHttpClient(List<Interceptor> interceptors) {
-		OkHttpClient.Builder builder = new OkHttpClient.Builder();
+	public OkHttpClient okHttpClient(OkHttpClient.Builder builder, List<Interceptor> interceptors) {
 		interceptors.forEach(builder::addInterceptor);
 		return builder.build();
 	}

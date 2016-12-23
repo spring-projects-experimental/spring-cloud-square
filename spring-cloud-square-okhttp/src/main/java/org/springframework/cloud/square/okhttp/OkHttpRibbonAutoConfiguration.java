@@ -1,14 +1,20 @@
 package org.springframework.cloud.square.okhttp;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.beans.factory.SmartInitializingSingleton;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.netflix.ribbon.Ribbon;
 
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 
 /**
@@ -19,16 +25,39 @@ import okhttp3.OkHttpClient;
 @ConditionalOnBean(LoadBalancerClient.class)
 public class OkHttpRibbonAutoConfiguration {
 
+	//@LoadBalanced
+	//@Autowired(required = false)
+	//private List<OkHttpClient.Builder> httpClientBuilders = Collections.emptyList();
+
 	@Bean
 	public OkHttpRibbonInterceptor okHttpRibbonInterceptor(LoadBalancerClient client) {
 		return new OkHttpRibbonInterceptor(client);
 	}
 
+	//TODO: fix this so customizer works
 	@Bean
-	@ConditionalOnMissingBean
-	public OkHttpClient okHttpClient(OkHttpRibbonInterceptor interceptor) {
+	@LoadBalanced
+	public OkHttpClient okHttpClient(List<Interceptor> interceptors) {
 		OkHttpClient.Builder builder = new OkHttpClient.Builder();
-		builder.addInterceptor(interceptor);
+		interceptors.forEach(builder::addInterceptor);
 		return builder.build();
 	}
+
+	/*@Bean
+	public SmartInitializingSingleton loadBalancedRestTemplateInitializer(
+			final List<OkHttpClientBuilderCustomizer> customizers) {
+		return () -> {
+			for (OkHttpClient.Builder builder : OkHttpRibbonAutoConfiguration.this.httpClientBuilders) {
+				for (OkHttpClientBuilderCustomizer customizer : customizers) {
+					customizer.customize(builder);
+				}
+			}
+		};
+	}
+
+	@Bean
+	public OkHttpClientBuilderCustomizer okHttpClientBuilderCustomizer(List<Interceptor> interceptors) {
+		return builder -> interceptors.forEach(builder::addInterceptor);
+	}*/
+
 }
