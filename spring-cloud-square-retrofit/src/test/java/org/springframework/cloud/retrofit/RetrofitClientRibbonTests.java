@@ -98,13 +98,6 @@ public class RetrofitClientRibbonTests {
 		public Hello getHello() {
 			return new Hello(HELLO_WORLD_1);
 		}
-
-		public static void main(String[] args) {
-			new SpringApplicationBuilder(Application.class)
-					.properties("spring.application.name=retrofitclientribbontest",
-							"management.contextPath=/admin")
-					.run(args);
-		}
 	}
 
 	@Test

@@ -205,14 +205,6 @@ public class RetrofitClientReactorTests {
 		ResponseEntity<String> notFound() {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body((String) null);
 		}
-
-		public static void main(String[] args) {
-			new SpringApplicationBuilder(Application.class)
-					.properties("spring.application.name=retrofitclienttest",
-							"management.contextPath=/admin",
-							"retrofit.client.url.tests.url=http://localhost:8080")
-					.run(args);
-		}
 	}
 
 	private static ArrayList<Hello> getHelloList() {

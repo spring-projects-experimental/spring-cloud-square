@@ -109,14 +109,6 @@ public class RetrofitNoAnnotationTests {
 		public Hello getHello() {
 			return new Hello(HELLO_WORLD_1);
 		}
-
-		public static void main(String[] args) {
-			new SpringApplicationBuilder(Application.class)
-					.properties("spring.application.name=retrofitnoannotationtest",
-							"management.contextPath=/admin",
-							"retrofit.client.url.tests.url=http://localhost:8080")
-					.run(args);
-		}
 	}
 
 	@Test
