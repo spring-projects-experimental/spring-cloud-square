@@ -14,27 +14,32 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.retrofit;
+package org.springframework.cloud.retrofit.support;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.cloud.netflix.ribbon.StaticServerList;
+import org.springframework.cloud.retrofit.RetrofitClientRibbonTests;
+import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
@@ -54,26 +59,15 @@ import retrofit2.http.GET;
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = { "spring.application.name=retrofitnoannotationtest",
+@SpringBootTest(properties = { "spring.application.name=retrofitribbonnoannotationtest",
 				"logging.level.org.springframework.cloud.retrofit=DEBUG",
 				"retrofit.reactor.enabled=false",
 				"okhttp.ribbon.enabled=false",
 		 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
-public class RetrofitNoAnnotationTests {
+public class RetrofitRibbonNoAnnotationTests {
 
 	protected static final String HELLO_WORLD_1 = "hello world 1";
-
-	@BeforeClass
-	public static void init() {
-		int port = SocketUtils.findAvailableTcpPort();
-		System.setProperty("server.port", String.valueOf(port));
-	}
-
-	@AfterClass
-	public static void destroy() {
-		System.clearProperty("server.port");
-	}
 
 	@Autowired
 	private TestClient testClient;
@@ -86,20 +80,23 @@ public class RetrofitNoAnnotationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@RestController
+	@RibbonClient(name = "localapp", configuration = RetrofitClientRibbonTests.LocalRibbonClientConfiguration.class)
 	@SuppressWarnings("unused")
 	protected static class Application {
 
-		@Value("${server.port}")
-		private int port;
-
 		@Bean
-		public TestClient testClient(ConversionService conversionService,
+		public TestClient testClient(LoadBalancerClient loadBalancerClient,
+									 ConversionService conversionService,
 									 ObjectFactory<HttpMessageConverters> messageConverters) {
-			HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-			interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+			HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+			loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-			return new Retrofit.Builder().baseUrl("http://localhost:"+port)
-					.client(new OkHttpClient.Builder().addInterceptor(interceptor).build())
+
+			return new Retrofit.Builder().baseUrl("http://localapp")
+					.client(new OkHttpClient.Builder()
+							.addInterceptor(loggingInterceptor)
+							.addInterceptor(new OkHttpRibbonInterceptor(loadBalancerClient))
+							.build())
 					.addConverterFactory(new SpringConverterFactory(messageConverters, conversionService))
 					.build()
 					.create(TestClient.class);
@@ -112,7 +109,7 @@ public class RetrofitNoAnnotationTests {
 
 		public static void main(String[] args) {
 			new SpringApplicationBuilder(Application.class)
-					.properties("spring.application.name=retrofitnoannotationtest",
+					.properties("spring.application.name=retrofitribbonnoannotationtest",
 							"management.contextPath=/admin",
 							"retrofit.client.url.tests.url=http://localhost:8080")
 					.run(args);
@@ -134,4 +131,16 @@ public class RetrofitNoAnnotationTests {
 		private String message;
 	}
 
+	// Load balancer with fixed server list for "local" pointing to localhost
+	public static class LocalRibbonClientConfiguration {
+
+		@LocalServerPort
+		private int port = 0;
+
+		@Bean
+		public ServerList<Server> ribbonServerList() {
+			return new StaticServerList<>(new Server("localhost", this.port));
+		}
+
+	}
 }

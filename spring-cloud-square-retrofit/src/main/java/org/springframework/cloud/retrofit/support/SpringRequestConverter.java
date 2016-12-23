@@ -1,4 +1,4 @@
-package org.springframework.cloud.retrofit;
+package org.springframework.cloud.retrofit.support;
 
 import java.io.IOException;
 import java.io.OutputStream;
