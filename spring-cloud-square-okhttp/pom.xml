@@ -19,8 +19,8 @@
 	</parent>
 
 	<properties>
-		<okhttp.version>2.5.0</okhttp.version>
-		<retrofit.version>2.0.0-beta2</retrofit.version>
+		<okhttp.version>3.5.0</okhttp.version>
+		<retrofit.version>2.1.0</retrofit.version>
 	</properties>
 
 	<dependencies>
@@ -35,23 +35,12 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>com.squareup.okhttp</groupId>
+			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
 			<version>${okhttp.version}</version>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>com.squareup.retrofit</groupId>
-			<artifactId>retrofit</artifactId>
-			<version>${retrofit.version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>com.squareup.retrofit</groupId>
-			<artifactId>converter-jackson</artifactId>
-			<version>${retrofit.version}</version>
-			<optional>true</optional>
-		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -62,7 +51,18 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-
+		<dependency>
+			<groupId>com.squareup.retrofit2</groupId>
+			<artifactId>retrofit</artifactId>
+			<version>${retrofit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.retrofit2</groupId>
+			<artifactId>converter-jackson</artifactId>
+			<version>${retrofit.version}</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>

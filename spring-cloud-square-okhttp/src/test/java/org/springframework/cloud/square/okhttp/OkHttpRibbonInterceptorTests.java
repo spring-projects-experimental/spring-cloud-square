@@ -3,8 +3,8 @@ package org.springframework.cloud.square.okhttp;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.netflix.ribbon.StaticServerList;
@@ -17,9 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.loadbalancer.Server;
 import com.netflix.loadbalancer.ServerList;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -27,10 +24,13 @@ import static org.junit.Assert.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import lombok.SneakyThrows;
-import retrofit.Call;
-import retrofit.JacksonConverterFactory;
-import retrofit.Retrofit;
-import retrofit.http.GET;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.http.GET;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = OkHttpRibbonInterceptorTests.TestApp.class,
@@ -87,7 +87,7 @@ public class OkHttpRibbonInterceptorTests {
 	@Test
 	@SneakyThrows
 	public void retrofitWorks() {
-		retrofit.Response<Hello> response = testAppClient.hello().execute();
+		retrofit2.Response<Hello> response = testAppClient.hello().execute();
 		String hello = response.body().getValue();
 		assertThat("response was wrong", hello, is(equalTo("hello okhttp")));
 	}
@@ -123,7 +123,7 @@ public class OkHttpRibbonInterceptorTests {
 	// ribbon configuration that resolves SERVICE_ID to localhost and
 	// the resolved random port
 	public static class TestAppConfig {
-		@Value("${local.server.port}")
+		@LocalServerPort
 		private int port = 0;
 
 		@Bean

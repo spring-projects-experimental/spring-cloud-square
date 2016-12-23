@@ -1,9 +1,9 @@
 package org.springframework.cloud.square.okhttp;
 
-import com.squareup.okhttp.HttpUrl;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.Response;
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 
@@ -23,7 +23,7 @@ public class OkHttpRibbonInterceptor implements Interceptor {
 	@Override
 	public Response intercept(Chain chain) throws IOException {
 		Request original = chain.request();
-		HttpUrl originalUrl = original.httpUrl();
+		HttpUrl originalUrl = original.url();
 		String serviceId = originalUrl.host();
 		ServiceInstance service = client.choose(serviceId);
 
