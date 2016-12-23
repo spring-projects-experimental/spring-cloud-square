@@ -91,7 +91,6 @@ public class RetrofitRibbonNoAnnotationTests {
 			HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
 			loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-
 			return new Retrofit.Builder().baseUrl("http://localapp")
 					.client(new OkHttpClient.Builder()
 							.addInterceptor(loggingInterceptor)
