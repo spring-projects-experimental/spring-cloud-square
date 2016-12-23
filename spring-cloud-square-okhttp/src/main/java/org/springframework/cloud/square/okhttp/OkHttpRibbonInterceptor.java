@@ -27,6 +27,10 @@ public class OkHttpRibbonInterceptor implements Interceptor {
 		String serviceId = originalUrl.host();
 		ServiceInstance service = client.choose(serviceId);
 
+		if (service == null) {
+			throw new IllegalStateException("No instances available for " + serviceId);
+		}
+
 		HttpUrl url = originalUrl.newBuilder()
 				.scheme(service.isSecure()? "https" : "http")
 				.host(service.getHost())

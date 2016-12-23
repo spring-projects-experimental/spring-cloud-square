@@ -91,9 +91,9 @@ class RetrofitClientFactoryBean implements FactoryBean<Object>, InitializingBean
 	protected Retrofit.Builder retrofit(RetrofitContext context) {
 		Retrofit.Builder builder = get(context, Retrofit.Builder.class);
 
-		OkHttpClient httpClient = getOptional(context, OkHttpClient.class);
-		if (httpClient != null) {
-			builder.client(httpClient);
+		OkHttpClient.Builder clientBuilder = getOptional(context, OkHttpClient.Builder.class);
+		if (clientBuilder != null) {
+			builder.client(clientBuilder.build());
 		}
 
 		Map<String, Converter.Factory> converterFactories = getInstances(context, Converter.Factory.class);
@@ -131,16 +131,16 @@ class RetrofitClientFactoryBean implements FactoryBean<Object>, InitializingBean
 	protected Object loadBalance(Retrofit.Builder builder, RetrofitContext context,
 								String serviceIdUrl) {
 		builder.baseUrl(serviceIdUrl);
-		Map<String, OkHttpClient> instances = context.getInstances(this.name, OkHttpClient.class);
-		for (OkHttpClient client : instances.values()) {
+		Map<String, OkHttpClient.Builder> instances = context.getInstances(this.name, OkHttpClient.Builder.class);
+		for (OkHttpClient.Builder clientBuilder : instances.values()) {
 			//TODO is there a framework way of finding OkHttpClient that has @LoadBalanced qualifier?
 			// see QualifierAnnotationAutowireCandidateResolver
-			List<Interceptor> interceptors = client.interceptors();
+			List<Interceptor> interceptors = clientBuilder.interceptors();
 			Optional<Interceptor> found = interceptors.stream()
 					.filter(interceptor -> interceptor instanceof OkHttpRibbonInterceptor)
 					.findFirst();
 			if (found.isPresent()) {
-				builder.client(client);
+				builder.client(clientBuilder.build());
 				Retrofit retrofit = buildAndSave(context, builder);
 				return retrofit.create(this.type);
 			}

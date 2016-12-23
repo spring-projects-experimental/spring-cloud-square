@@ -64,11 +64,11 @@ public class OkHttpRibbonInterceptorTests {
 
 	//is configured with OkHttpRibbonInterceptor
 	@Autowired
-	OkHttpClient httpClient;
+	private OkHttpClient.Builder builder;
 
 	//Our retrofit defined client
 	@Autowired
-	TestAppClient testAppClient;
+	private TestAppClient testAppClient;
 
 	@Test
 	@SneakyThrows
@@ -79,7 +79,7 @@ public class OkHttpRibbonInterceptorTests {
 				// resolve it
 				.url("http://" + SERVICE_ID + "/hello")
 				.build();
-		Response response = httpClient.newCall(request).execute();
+		Response response = builder.build().newCall(request).execute();
 		Hello hello = new ObjectMapper().readValue(response.body().byteStream(), Hello.class);
 		assertThat("response was wrong", hello.getValue(), is(equalTo("hello okhttp")));
 	}
@@ -119,13 +119,14 @@ public class OkHttpRibbonInterceptorTests {
 		}*/
 
 		@Bean
-		public TestAppClient testAppClient(@LoadBalanced OkHttpClient okHttpClient) {
+		@DependsOnLoadBalancedClient //TODO: can this be avoided?
+		public TestAppClient testAppClient(@LoadBalanced OkHttpClient.Builder builder) {
 			Retrofit retrofit = new Retrofit.Builder()
 					// here you use a service id, or virtual hostname
 					// rather than an actual host:port, ribbon will
 					// resolve it
 					.baseUrl("http://testapp")
-					.client(okHttpClient)
+					.client(builder.build())
 					.addConverterFactory(JacksonConverterFactory.create())
 					.build();
 			return retrofit.create(TestAppClient.class);

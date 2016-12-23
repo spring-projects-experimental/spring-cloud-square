@@ -16,15 +16,27 @@
 
 package org.springframework.cloud.retrofit;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.Collections;
 import java.util.List;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
+import org.springframework.cloud.square.okhttp.OkHttpClientBuilderCustomizer;
+import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.ConversionService;
@@ -66,16 +78,52 @@ public class DefaultRetrofitClientConfiguration {
 	}
 
 	@Configuration
-	//TODO: how to apply interceptors to non-loadbalanced builders
-	//@ConditionalOnMissingClass("com.netflix.ribbon.Ribbon")
+	@ConditionalOnRibbonDisabled
+	//TODO: how to verify interceptors are applied to non-loadbalanced builders
 	protected static class DefaultOkHttpConfiguration {
-		//TODO: move to customizer strategy
+		@Autowired(required = false)
+		private List<OkHttpClient.Builder> httpClientBuilders = Collections.emptyList();
+
+		//TODO move to abstract class in core module?
 		@Bean
-		@ConditionalOnMissingBean
-		public OkHttpClient okHttpClient(OkHttpClient.Builder builder, List<Interceptor> interceptors) {
-			interceptors.forEach(builder::addInterceptor);
-			return builder.build();
+		public InitializingBean okHttpClientBuilderInitializer(
+				final List<OkHttpClientBuilderCustomizer> customizers) {
+			return () -> {
+				for (OkHttpClient.Builder builder : DefaultOkHttpConfiguration.this.httpClientBuilders) {
+					for (OkHttpClientBuilderCustomizer customizer : customizers) {
+						customizer.customize(builder);
+					}
+				}
+			};
 		}
+
+		@Bean
+		public OkHttpClientBuilderCustomizer okHttpClientBuilderCustomizer(List<Interceptor> interceptors) {
+			return builder -> interceptors.forEach(builder::addInterceptor);
+		}
+
+	}
+
+	@Target({ ElementType.TYPE, ElementType.METHOD })
+	@Retention(RetentionPolicy.RUNTIME)
+	@Documented
+	@Conditional(OnRibbonDisabledCondition.class)
+	@interface ConditionalOnRibbonDisabled {
+
+	}
+
+	private static class OnRibbonDisabledCondition extends AnyNestedCondition {
+
+		public OnRibbonDisabledCondition() {
+			super(ConfigurationPhase.REGISTER_BEAN);
+		}
+
+		@ConditionalOnMissingClass("com.netflix.ribbon.Ribbon")
+		static class MissingClass { }
+
+		@ConditionalOnMissingBean(OkHttpRibbonInterceptor.class)
+		static class MissingBean { }
+
 	}
 
 	@Configuration
