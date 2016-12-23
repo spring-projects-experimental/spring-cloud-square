@@ -17,17 +17,21 @@
 package org.springframework.cloud.retrofit;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import retrofit2.CallAdapter;
 import retrofit2.Converter;
@@ -124,18 +128,26 @@ class RetrofitClientFactoryBean implements FactoryBean<Object>, InitializingBean
 		return context.getInstance(this.name, type);
 	}
 
-	/*protected <T> T loadBalance(Retrofit.Builder builder, RetrofitContext context,
-			HardCodedTarget<T> target) {
-		Client client = getOptional(context, Client.class);
-		if (client != null) {
-			builder.client(client);
-			Targeter targeter = get(context, Targeter.class);
-			return targeter.target(this, builder, context, target);
+	protected Object loadBalance(Retrofit.Builder builder, RetrofitContext context,
+								String serviceIdUrl) {
+		builder.baseUrl(serviceIdUrl);
+		Map<String, OkHttpClient> instances = context.getInstances(this.name, OkHttpClient.class);
+		for (OkHttpClient client : instances.values()) {
+			//TODO is there a framework way of finding OkHttpClient that has @LoadBalanced qualifier?
+			List<Interceptor> interceptors = client.interceptors();
+			Optional<Interceptor> found = interceptors.stream()
+					.filter(interceptor -> interceptor instanceof OkHttpRibbonInterceptor)
+					.findFirst();
+			if (found.isPresent()) {
+				builder.client(client);
+				Retrofit retrofit = buildAndSave(context, builder);
+				return retrofit.create(this.type);
+			}
 		}
 
 		throw new IllegalStateException(
-				"No Retrofit Client for loadBalancing defined. Did you forget to include spring-cloud-starter-ribbon?");
-	}*/
+				"No Retrofit Client for loadBalancing defined. Did you forget to include spring-cloud-starter-square-okhttp?");
+	}
 
 	@Override
 	public Object getObject() throws Exception {
@@ -144,42 +156,33 @@ class RetrofitClientFactoryBean implements FactoryBean<Object>, InitializingBean
 		Retrofit.Builder builder = retrofit(context);
 
 		if (!StringUtils.hasText(this.url)) {
-			String url;
+			String serviceIdUrl;
 			if (!this.name.startsWith("http")) {
-				url = "http://" + this.name;
+				serviceIdUrl = "http://" + this.name;
 			}
 			else {
-				url = this.name;
+				serviceIdUrl = this.name;
 			}
-			throw new UnsupportedOperationException("retrofit loadbalancing is not implemented");
-			//return loadBalance(builder, context, new HardCodedTarget<>(this.type,
-			//		this.name, url));
+			return loadBalance(builder, context, serviceIdUrl);
 		}
+
 		if (StringUtils.hasText(this.url) && !this.url.startsWith("http")) {
 			this.url = "http://" + this.url;
 		}
 
-		/*Client client = getOptional(context, Client.class);
-		if (client != null) {
-			if (client instanceof LoadBalancerRetrofitClient) {
-				// not lod balancing because we have a url,
-				// but ribbon is on the classpath, so unwrap
-				client = ((LoadBalancerRetrofitClient)client).getDelegate();
-			}
-			builder.client(client);
-		}
-		Targeter targeter = get(context, Targeter.class);
-		return targeter.target(this, builder, context, new HardCodedTarget<>(
-				this.type, this.name, url));*/
-
 		builder.baseUrl(this.url);
+
+		Retrofit retrofit = buildAndSave(context, builder);
+		return retrofit.create(this.type);
+	}
+
+	private Retrofit buildAndSave(RetrofitContext context, Retrofit.Builder builder) {
 		Retrofit retrofit = builder.build();
 
 		// add retrofit to this.names context as a bean
 		AnnotationConfigApplicationContext applicationContext = context.getContext(this.name);
 		applicationContext.registerBean(Retrofit.class, () -> retrofit);
-
-		return retrofit.create(this.type);
+		return retrofit;
 	}
 
 	@Override

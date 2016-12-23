@@ -7,6 +7,7 @@ import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,7 @@ import okhttp3.OkHttpClient;
 @Configuration
 @ConditionalOnClass({OkHttpClient.class, Ribbon.class})
 @ConditionalOnBean(LoadBalancerClient.class)
+@ConditionalOnProperty(value = "okhttp.ribbon.enabled", matchIfMissing = true)
 public class OkHttpRibbonAutoConfiguration {
 
 	//@LoadBalanced
@@ -37,7 +39,7 @@ public class OkHttpRibbonAutoConfiguration {
 	//TODO: fix this so customizer works
 	@Bean
 	@LoadBalanced
-	public OkHttpClient okHttpClient(@LoadBalanced OkHttpClient.Builder builder, List<Interceptor> interceptors) {
+	public OkHttpClient loadBalancedOkHttpClient(@LoadBalanced OkHttpClient.Builder builder, List<Interceptor> interceptors) {
 		interceptors.forEach(builder::addInterceptor);
 		return builder.build();
 	}

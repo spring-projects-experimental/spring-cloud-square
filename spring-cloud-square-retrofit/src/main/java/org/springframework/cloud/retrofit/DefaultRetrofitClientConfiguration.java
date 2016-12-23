@@ -18,7 +18,6 @@ package org.springframework.cloud.retrofit;
 
 import java.util.List;
 
-import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -30,6 +29,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.format.support.DefaultFormattingConversionService;
+
+import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
 
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -44,13 +45,6 @@ public class DefaultRetrofitClientConfiguration {
 
 	@Autowired
 	private ObjectFactory<HttpMessageConverters> messageConverters;
-
-	@Bean
-	@ConditionalOnMissingBean
-	public OkHttpClient okHttpClient(OkHttpClient.Builder builder, List<Interceptor> interceptors) {
-		interceptors.forEach(builder::addInterceptor);
-		return builder.build();
-	}
 
 	@Bean
 	@Scope("prototype")
@@ -69,6 +63,19 @@ public class DefaultRetrofitClientConfiguration {
 	@ConditionalOnMissingBean
 	public SpringConverterFactory springConverterFactory(ConversionService conversionService) {
 		return new SpringConverterFactory(messageConverters, conversionService);
+	}
+
+	@Configuration
+	//TODO: how to apply interceptors to non-loadbalanced builders
+	//@ConditionalOnMissingClass("com.netflix.ribbon.Ribbon")
+	protected static class DefaultOkHttpConfiguration {
+		//TODO: move to customizer strategy
+		@Bean
+		@ConditionalOnMissingBean
+		public OkHttpClient okHttpClient(OkHttpClient.Builder builder, List<Interceptor> interceptors) {
+			interceptors.forEach(builder::addInterceptor);
+			return builder.build();
+		}
 	}
 
 	@Configuration

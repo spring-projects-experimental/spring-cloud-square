@@ -71,11 +71,6 @@ import retrofit2.http.POST;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
 
-//import org.springframework.cloud.retrofit.ribbon.LoadBalancerRetrofitClient;
-//import org.springframework.cloud.netflix.ribbon.RibbonClient;
-//import org.springframework.cloud.netflix.ribbon.RibbonClients;
-//import org.springframework.cloud.netflix.ribbon.StaticServerList;
-
 /**
  * @author Spencer Gibb
  */
@@ -85,6 +80,7 @@ import retrofit2.http.Url;
 				"retrofitClient.dynamicUrlPath=/hello2",
 				"retrofitClient.myDynamicHeader=myDynamicHeaderValue",
 				"retrofit.reactor.enabled=false",
+				"okhttp.ribbon.enabled=false"
 		 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
 public class RetrofitClientUrlTests {
@@ -109,9 +105,6 @@ public class RetrofitClientUrlTests {
 
 	@Autowired
 	private TestClient testClient;
-
-	@Autowired
-	private TestClientServiceId testClientServiceId;
 
 	protected enum Arg {
 		A, B;
@@ -201,25 +194,11 @@ public class RetrofitClientUrlTests {
 		}
 	}
 
-	@RetrofitClient(name = "localapp1", url = "${retrofit.client.url.tests.url}")
-	protected interface TestClientServiceId {
-		@GET("/hello")
-		Call<Hello> getHello();
-	}
-
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@RestController
-	@EnableRetrofitClients(clients = { TestClientServiceId.class, TestClient.class,
-			},
+	@EnableRetrofitClients(clients = { TestClient.class, },
 			defaultConfiguration = TestDefaultRetrofitConfig.class)
-	/*@RibbonClients({
-			@RibbonClient(name = "localapp", configuration = LocalRibbonClientConfiguration.class),
-			@RibbonClient(name = "localapp1", configuration = LocalRibbonClientConfiguration.class),
-			@RibbonClient(name = "localapp2", configuration = LocalRibbonClientConfiguration.class),
-			@RibbonClient(name = "localapp3", configuration = LocalRibbonClientConfiguration.class),
-			@RibbonClient(name = "localapp4", configuration = LocalRibbonClientConfiguration.class)
-	})*/
 	@SuppressWarnings("unused")
 	protected static class Application {
 		@Bean
@@ -402,16 +381,6 @@ public class RetrofitClientUrlTests {
 	}
 
 	@Test
-	public void testServiceId() throws Exception {
-		assertNotNull("testClientServiceId was null", this.testClientServiceId);
-		Response<Hello> response = this.testClientServiceId.getHello().execute();
-		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
-		Hello hello = response.body();
-		assertNotNull("The hello response was null", hello);
-		assertEquals("first hello didn't match", new Hello(HELLO_WORLD_1), hello);
-	}
-
-	@Test
 	public void testParams() throws Exception {
 		Response<List<String>> response = this.testClient.getParams("a", "1", "test").execute();
 		assertTrue("response was unsuccessful " + response.code(), response.isSuccessful());
@@ -476,17 +445,4 @@ public class RetrofitClientUrlTests {
 
 	}
 
-	// Load balancer with fixed server list for "local" pointing to localhost
-	/*@Configuration
-	public static class LocalRibbonClientConfiguration {
-
-		@Value("${local.server.port}")
-		private int port = 0;
-
-		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", this.port));
-		}
-
-	}*/
 }

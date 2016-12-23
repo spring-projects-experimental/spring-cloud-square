@@ -69,6 +69,7 @@ import retrofit2.http.GET;
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = { "spring.application.name=retrofitclientreactortest",
 				"logging.level.org.springframework.cloud.retrofit=DEBUG",
+				"okhttp.ribbon.enabled=false"
 		 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
 public class RetrofitClientReactorTests {
