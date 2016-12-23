@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/spring-cloud-incubator/spring-cloud-square.svg?style=svg)](https://circleci.com/gh/spring-cloud-incubator/spring-cloud-square)
+
 # OkHttpClient integration with Ribbon
 
 This module supplies integration with Square's [`OkHttpClient`](http://square.github.io/okhttp/) and Netflix [Ribbon](https://github.com/Netflix/ribbon) via [Spring Cloud Netflix](https://github.com/spring-cloud/spring-cloud-netflix).
