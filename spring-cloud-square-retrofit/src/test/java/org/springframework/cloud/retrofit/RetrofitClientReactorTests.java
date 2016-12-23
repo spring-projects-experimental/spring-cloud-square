@@ -16,46 +16,29 @@
 
 package org.springframework.cloud.retrofit;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.retrofit.test.DefinedPortTests;
+import org.springframework.cloud.retrofit.test.Hello;
+import org.springframework.cloud.retrofit.test.HelloController;
+import org.springframework.cloud.retrofit.test.LoggingRetrofitConfig;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.SocketUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
 import com.jakewharton.retrofit2.adapter.reactor.Result;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import retrofit2.Call;
@@ -72,25 +55,7 @@ import retrofit2.http.GET;
 				"okhttp.ribbon.enabled=false"
 		 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
-public class RetrofitClientReactorTests {
-
-	protected static final String HELLO_WORLD_1 = "hello world 1";
-	protected static final String OI_TERRA_2 = "oi terra 2";
-	protected static final String MYHEADER1 = "myheader1";
-	protected static final String MYHEADER2 = "myheader2";
-
-	@BeforeClass
-	public static void init() {
-		int port = SocketUtils.findAvailableTcpPort();
-		System.setProperty("server.port", String.valueOf(port));
-		System.setProperty("retrofit.client.url.tests.url", "http://localhost:"+port);
-	}
-
-	@AfterClass
-	public static void destroy() {
-		System.clearProperty("server.port");
-		System.clearProperty("retrofit.client.url.tests.url");
-	}
+public class RetrofitClientReactorTests extends DefinedPortTests {
 
 	@Autowired
 	private TestClient testClient;
@@ -121,7 +86,7 @@ public class RetrofitClientReactorTests {
 	}
 
 
-	@RetrofitClient(name = "localapp", url = "${retrofit.client.url.tests.url}", configuration = TestClientConfig.class)
+	@RetrofitClient(name = "localapp", url = "${retrofit.client.url.tests.url}")
 	protected interface TestClient {
 		@GET("/hello")
 		Call<Hello> getHello();
@@ -140,78 +105,16 @@ public class RetrofitClientReactorTests {
 		Flux<Hello> getHelloFlux();
 	}
 
-	public static class TestClientConfig {
-
-	}
-
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@RestController
 	@EnableRetrofitClients(clients = { TestClient.class, },
-			defaultConfiguration = TestDefaultRetrofitConfig.class)
+			defaultConfiguration = LoggingRetrofitConfig.class)
 	@SuppressWarnings("unused")
-	protected static class Application {
+	protected static class Application extends HelloController {
 		@Bean
 		public OkHttpClient.Builder builder() {
 			return new OkHttpClient.Builder();
 		}
-
-
-		@RequestMapping(method = GET, path = "/hello")
-		public Hello getHello() {
-			return new Hello(HELLO_WORLD_1);
-		}
-
-		@RequestMapping(method = POST, path = "/hello")
-		public Hello postHello(@RequestBody Hello hello) {
-			return new Hello(hello.getMessage());
-		}
-
-		@RequestMapping(method = GET, path = "/hellos")
-		public List<Hello> getHellos() {
-			ArrayList<Hello> hellos = getHelloList();
-			return hellos;
-		}
-
-		@RequestMapping(method = GET, path = "/hellostrings")
-		public List<String> getHelloStrings() {
-			ArrayList<String> hellos = new ArrayList<>();
-			hellos.add(HELLO_WORLD_1);
-			hellos.add(OI_TERRA_2);
-			return hellos;
-		}
-
-		@RequestMapping(method = GET, path = "/helloparams")
-		public List<String> getParams(@RequestParam("params") List<String> params) {
-			return params;
-		}
-
-		@RequestMapping(method = GET, path = "/noContent")
-		ResponseEntity<Void> noContent() {
-			return ResponseEntity.noContent().build();
-		}
-
-		@RequestMapping(method = RequestMethod.HEAD, path = "/head")
-		ResponseEntity<Void> head() {
-			return ResponseEntity.ok().build();
-		}
-
-		@RequestMapping(method = GET, path = "/fail")
-		String fail() {
-			throw new RuntimeException("always fails");
-		}
-
-		@RequestMapping(method = GET, path = "/notFound")
-		ResponseEntity<String> notFound() {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body((String) null);
-		}
-	}
-
-	private static ArrayList<Hello> getHelloList() {
-		ArrayList<Hello> hellos = new ArrayList<>();
-		hellos.add(new Hello(HELLO_WORLD_1));
-		hellos.add(new Hello(OI_TERRA_2));
-		return hellos;
 	}
 
 	@Test
@@ -262,24 +165,6 @@ public class RetrofitClientReactorTests {
 		Flux<Hello> flux = this.testClient.getHelloFlux();
 		assertThat(flux).isNotNull();
 		assertThat(flux.blockFirst()).isEqualTo(new Hello(HELLO_WORLD_1));
-	}
-
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
-	public static class Hello {
-		private String message;
-	}
-
-	@Configuration
-	public static class TestDefaultRetrofitConfig {
-		@Bean
-		public Interceptor loggingInterceptor() {
-			HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-			interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-			return interceptor;
-		}
-
 	}
 
 }

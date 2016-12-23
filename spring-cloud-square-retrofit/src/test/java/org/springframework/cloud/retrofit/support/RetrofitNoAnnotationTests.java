@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.retrofit.support;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.ObjectFactory;
@@ -26,23 +24,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.retrofit.test.DefinedPortTests;
+import org.springframework.cloud.retrofit.test.Hello;
+import org.springframework.cloud.retrofit.test.HelloController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.SocketUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -60,20 +53,9 @@ import retrofit2.http.GET;
 				"okhttp.ribbon.enabled=false",
 		 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
-public class RetrofitNoAnnotationTests {
+public class RetrofitNoAnnotationTests extends DefinedPortTests {
 
 	protected static final String HELLO_WORLD_1 = "hello world 1";
-
-	@BeforeClass
-	public static void init() {
-		int port = SocketUtils.findAvailableTcpPort();
-		System.setProperty("server.port", String.valueOf(port));
-	}
-
-	@AfterClass
-	public static void destroy() {
-		System.clearProperty("server.port");
-	}
 
 	@Autowired
 	private TestClient testClient;
@@ -85,30 +67,30 @@ public class RetrofitNoAnnotationTests {
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@RestController
 	@SuppressWarnings("unused")
-	protected static class Application {
+	protected static class Application extends HelloController {
 
 		@Value("${server.port}")
 		private int port;
 
 		@Bean
-		public TestClient testClient(ConversionService conversionService,
-									 ObjectFactory<HttpMessageConverters> messageConverters) {
+		public SpringConverterFactory springConverterFactory(ConversionService conversionService,
+															 ObjectFactory<HttpMessageConverters> messageConverters) {
+			return new SpringConverterFactory(messageConverters, conversionService);
+		}
+
+		@Bean
+		public TestClient testClient(SpringConverterFactory springConverterFactory) {
 			HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
 			interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
 			return new Retrofit.Builder().baseUrl("http://localhost:"+port)
 					.client(new OkHttpClient.Builder().addInterceptor(interceptor).build())
-					.addConverterFactory(new SpringConverterFactory(messageConverters, conversionService))
+					.addConverterFactory(springConverterFactory)
 					.build()
 					.create(TestClient.class);
 		}
 
-		@RequestMapping(method = GET, path = "/hello")
-		public Hello getHello() {
-			return new Hello(HELLO_WORLD_1);
-		}
 	}
 
 	@Test
@@ -117,13 +99,6 @@ public class RetrofitNoAnnotationTests {
 		assertThat(response).isNotNull();
 		assertThat(response.isSuccessful()).as("checks response successful, code %d", response.code()).isTrue();
 		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
-	}
-
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
-	public static class Hello {
-		private String message;
 	}
 
 }

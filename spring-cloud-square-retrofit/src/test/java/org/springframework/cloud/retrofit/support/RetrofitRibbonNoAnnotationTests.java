@@ -23,13 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
-import org.springframework.cloud.retrofit.RetrofitClientRibbonTests;
+import org.springframework.cloud.retrofit.test.Hello;
+import org.springframework.cloud.retrofit.test.LocalRibbonClientConfiguration;
 import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.ConversionService;
@@ -38,16 +36,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -80,23 +72,33 @@ public class RetrofitRibbonNoAnnotationTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@RestController
-	@RibbonClient(name = "localapp", configuration = RetrofitClientRibbonTests.LocalRibbonClientConfiguration.class)
+	@RibbonClient(name = "localapp", configuration = LocalRibbonClientConfiguration.class)
 	@SuppressWarnings("unused")
 	protected static class Application {
 
 		@Bean
-		public TestClient testClient(LoadBalancerClient loadBalancerClient,
-									 ConversionService conversionService,
-									 ObjectFactory<HttpMessageConverters> messageConverters) {
+		public OkHttpRibbonInterceptor okHttpRibbonInterceptor(LoadBalancerClient loadBalancerClient) {
+			return new OkHttpRibbonInterceptor(loadBalancerClient);
+		}
+
+		@Bean
+		public SpringConverterFactory springConverterFactory(ConversionService conversionService,
+															 ObjectFactory<HttpMessageConverters> messageConverters) {
+			return new SpringConverterFactory(messageConverters, conversionService);
+		}
+
+		@Bean
+		public TestClient testClient(OkHttpRibbonInterceptor ribbonInterceptor,
+									 SpringConverterFactory springConverterFactory) {
 			HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
 			loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
 			return new Retrofit.Builder().baseUrl("http://localapp")
 					.client(new OkHttpClient.Builder()
 							.addInterceptor(loggingInterceptor)
-							.addInterceptor(new OkHttpRibbonInterceptor(loadBalancerClient))
+							.addInterceptor(ribbonInterceptor)
 							.build())
-					.addConverterFactory(new SpringConverterFactory(messageConverters, conversionService))
+					.addConverterFactory(springConverterFactory)
 					.build()
 					.create(TestClient.class);
 		}
@@ -115,23 +117,5 @@ public class RetrofitRibbonNoAnnotationTests {
 		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
-	public static class Hello {
-		private String message;
-	}
 
-	// Load balancer with fixed server list for "local" pointing to localhost
-	public static class LocalRibbonClientConfiguration {
-
-		@LocalServerPort
-		private int port = 0;
-
-		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", this.port));
-		}
-
-	}
 }

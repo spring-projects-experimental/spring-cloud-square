@@ -21,33 +21,22 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
+import org.springframework.cloud.retrofit.test.Hello;
+import org.springframework.cloud.retrofit.test.HelloController;
+import org.springframework.cloud.retrofit.test.LocalRibbonClientConfiguration;
+import org.springframework.cloud.retrofit.test.LoggingRetrofitConfig;
 import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -72,31 +61,22 @@ public class RetrofitClientRibbonTests {
 	@Autowired
 	private RetrofitContext retrofitContext;
 
-	@RetrofitClient(name = "localapp", configuration = TestClientConfig.class)
+	@RetrofitClient(name = "localapp")
 	protected interface TestClient {
 		@GET("/hello")
 		Call<Hello> getHello();
 	}
 
-	public static class TestClientConfig {
-	}
-
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@RestController
-	@EnableRetrofitClients(clients = TestClient.class, defaultConfiguration = TestDefaultRetrofitConfig.class)
+	@EnableRetrofitClients(clients = TestClient.class, defaultConfiguration = LoggingRetrofitConfig.class)
 	@RibbonClient(name = "localapp", configuration = LocalRibbonClientConfiguration.class)
 	@SuppressWarnings("unused")
-	protected static class Application {
+	protected static class Application extends HelloController {
 		@Bean
 		@LoadBalanced
 		public OkHttpClient.Builder builder() {
 			return new OkHttpClient.Builder();
-		}
-
-		@RequestMapping(method = GET, path = "/hello")
-		public Hello getHello() {
-			return new Hello(HELLO_WORLD_1);
 		}
 	}
 
@@ -118,34 +98,4 @@ public class RetrofitClientRibbonTests {
 		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
-	public static class Hello {
-		private String message;
-	}
-
-	@Configuration
-	public static class TestDefaultRetrofitConfig {
-		@Bean
-		public Interceptor loggingInterceptor() {
-			HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-			interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-			return interceptor;
-		}
-
-	}
-
-	// Load balancer with fixed server list for "local" pointing to localhost
-	public static class LocalRibbonClientConfiguration {
-
-		@LocalServerPort
-		private int port = 0;
-
-		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", this.port));
-		}
-
-	}
 }
