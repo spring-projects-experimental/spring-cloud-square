@@ -1,30 +1,18 @@
 package org.springframework.cloud.square.okhttp;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
-import lombok.SneakyThrows;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import retrofit.Call;
-import retrofit.JacksonConverterFactory;
-import retrofit.Retrofit;
-import retrofit.http.GET;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.loadbalancer.Server;
@@ -33,9 +21,20 @@ import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = OkHttpRibbonInterceptorTests.TestApp.class)
-@WebIntegrationTest(randomPort = true)
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+
+import lombok.SneakyThrows;
+import retrofit.Call;
+import retrofit.JacksonConverterFactory;
+import retrofit.Retrofit;
+import retrofit.http.GET;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = OkHttpRibbonInterceptorTests.TestApp.class,
+		webEnvironment = RANDOM_PORT)
 public class OkHttpRibbonInterceptorTests {
 
 	//The serviceId that ribbon will resolve to host:port
