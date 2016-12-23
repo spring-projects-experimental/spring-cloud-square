@@ -134,6 +134,7 @@ class RetrofitClientFactoryBean implements FactoryBean<Object>, InitializingBean
 		Map<String, OkHttpClient> instances = context.getInstances(this.name, OkHttpClient.class);
 		for (OkHttpClient client : instances.values()) {
 			//TODO is there a framework way of finding OkHttpClient that has @LoadBalanced qualifier?
+			// see QualifierAnnotationAutowireCandidateResolver
 			List<Interceptor> interceptors = client.interceptors();
 			Optional<Interceptor> found = interceptors.stream()
 					.filter(interceptor -> interceptor instanceof OkHttpRibbonInterceptor)
