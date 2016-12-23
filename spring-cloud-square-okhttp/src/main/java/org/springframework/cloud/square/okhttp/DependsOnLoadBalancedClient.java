@@ -23,12 +23,14 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.DependsOn;
 
+import static org.springframework.cloud.square.okhttp.OkHttpRibbonAutoConfiguration.LOAD_BALANCED_CUSTOMIZED_BEAN_NAME;
+
 /**
  * @author Spencer Gibb
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@DependsOn("loadBalancedOkHttpClientBuilderInitializer")
+@DependsOn(LOAD_BALANCED_CUSTOMIZED_BEAN_NAME)
 public @interface DependsOnLoadBalancedClient {
 }

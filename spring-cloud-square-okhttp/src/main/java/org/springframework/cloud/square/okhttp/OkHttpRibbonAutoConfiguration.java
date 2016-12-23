@@ -27,6 +27,8 @@ import okhttp3.OkHttpClient;
 @ConditionalOnProperty(value = "okhttp.ribbon.enabled", matchIfMissing = true)
 public class OkHttpRibbonAutoConfiguration {
 
+	static final String LOAD_BALANCED_CUSTOMIZED_BEAN_NAME = "loadBalancedOkHttpClientBuilderInitializer";
+
 	@LoadBalanced
 	@Autowired(required = false)
 	private List<OkHttpClient.Builder> httpClientBuilders = Collections.emptyList();
@@ -36,7 +38,7 @@ public class OkHttpRibbonAutoConfiguration {
 		return new OkHttpRibbonInterceptor(client);
 	}
 
-	@Bean
+	@Bean(name = LOAD_BALANCED_CUSTOMIZED_BEAN_NAME)
 	public InitializingBean loadBalancedOkHttpClientBuilderInitializer(
 			final List<OkHttpClientBuilderCustomizer> customizers) {
 		return () -> {
