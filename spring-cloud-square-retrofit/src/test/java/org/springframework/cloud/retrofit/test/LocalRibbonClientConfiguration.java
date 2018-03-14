@@ -1,10 +1,11 @@
 package org.springframework.cloud.retrofit.test;
 
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
-import org.springframework.boot.context.embedded.LocalServerPort;
+import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.netflix.ribbon.StaticServerList;
 import org.springframework.context.annotation.Bean;
+
+import com.netflix.loadbalancer.Server;
+import com.netflix.loadbalancer.ServerList;
 
 /**
  * Load balancer with fixed server list for "local" pointing to localhost
