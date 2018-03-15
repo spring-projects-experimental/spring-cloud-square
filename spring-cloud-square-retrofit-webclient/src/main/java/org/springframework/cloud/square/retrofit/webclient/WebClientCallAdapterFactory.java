@@ -26,13 +26,13 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
         Class<?> rawType = getRawType(returnType);
         boolean isMono = rawType == Mono.class;
         boolean isFlux = rawType == Flux.class;
-        if (rawType != Flux.class && !isMono) {
+        /*if (rawType != Flux.class && !isMono) {
             return null;
-        }
+        }*/
 
         Class<?> bodyType;
-        /*boolean isResponse = false;
-        if (rawType == Response.class) {
+        boolean isResponse = false;
+        /*if (rawType == Response.class) {
             Type publisherType = getParameterUpperBound(0, (ParameterizedType) returnType);
             Type genericType = getParameterUpperBound(0, (ParameterizedType) publisherType);
             bodyType = (Class<?>) genericType;
@@ -42,14 +42,20 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
             isResponse = true;
         } else*/ if (isFlux || isMono) {
             Type genericType = getParameterUpperBound(0, (ParameterizedType) returnType);
-            bodyType = (Class) genericType;
+            if (isMono && genericType == ClientResponse.class) {
+                bodyType = null;
+                isResponse = true;
+            } else {
+                bodyType = (Class) genericType;
+            }
         } else {
             bodyType = (Class<?>) returnType;
         }
 
-        boolean toFlux = isFlux;
-        boolean toMono = isMono;
-        // boolean toResponse = isResponse;
+
+        /*boolean toFlux = isFlux;
+        boolean toMono = isMono;*/
+        boolean toResponse = isResponse;
 
         return new CallAdapter<Object, Object>() {
             @Override
@@ -66,6 +72,9 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
 
                 Mono<ClientResponse> clientResponse = webClientCall.requestBuilder().exchange();
 
+                if (toResponse) {
+                    return clientResponse;
+                }
                 /*if (toResponse) {
                     if (toMono) {
                         Mono<Response<Mono<Object>>> responseMono = clientResponse.map(response -> {
@@ -90,13 +99,13 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
                     }
                 }*/
 
-                if (toFlux) {
+                if (isFlux) {
                     Flux<Object> flux = clientResponse
                             .flatMapMany(response -> response.bodyToFlux(bodyType));
                     return flux;
                 } else {
                     Mono<Object> mono = clientResponse.flatMap(response -> response.bodyToMono(bodyType));
-                    if (toMono) {
+                    if (isMono) {
                         return mono;
                     } else {
                         return mono.block();
