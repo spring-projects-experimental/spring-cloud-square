@@ -7,6 +7,8 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,6 +51,15 @@ public class WebClientCallFactoryTests {
         ClientResponse clientResponse = mono.block();
         Mono<String> body = clientResponse.bodyToMono(String.class);
         assertThat(body.block()).isEqualTo("hello");
+    }
+
+    @Test
+    public void webClientEntity() {
+        Mono<ResponseEntity<String>> mono = testClient().getEntity();
+        assertThat(mono).isNotNull();
+        ResponseEntity<String> entity = mono.block();
+        assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(entity.getBody()).isEqualTo("hello");
     }
 
     @Test
@@ -97,6 +108,9 @@ public class WebClientCallFactoryTests {
 
         @GET("/hello")
         Mono<String> getMono();
+
+        @GET("/hello")
+        Mono<ResponseEntity<String>> getEntity();
 
         @GET("/hello")
         Mono<ClientResponse> getClientResponseMono();

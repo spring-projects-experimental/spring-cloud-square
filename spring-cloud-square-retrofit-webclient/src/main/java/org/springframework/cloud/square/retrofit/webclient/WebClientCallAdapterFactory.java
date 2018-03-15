@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -32,19 +33,17 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
 
         Class<?> bodyType;
         boolean isResponse = false;
-        /*if (rawType == Response.class) {
-            Type publisherType = getParameterUpperBound(0, (ParameterizedType) returnType);
-            Type genericType = getParameterUpperBound(0, (ParameterizedType) publisherType);
-            bodyType = (Class<?>) genericType;
-            Class<?> rawPublisherType = getRawType(publisherType);
-            isMono = rawPublisherType == Mono.class;
-            isFlux = rawPublisherType == Flux.class;
-            isResponse = true;
-        } else*/ if (isFlux || isMono) {
+        boolean isEntity = false;
+
+        if (isFlux || isMono) {
             Type genericType = getParameterUpperBound(0, (ParameterizedType) returnType);
             if (isMono && genericType == ClientResponse.class) {
                 bodyType = null;
                 isResponse = true;
+            } else if (isMono && getRawType(genericType) == ResponseEntity.class) {
+                Type entityType = getParameterUpperBound(0, (ParameterizedType) genericType);
+                bodyType = getRawType(entityType);
+                isEntity = true;
             } else {
                 bodyType = (Class) genericType;
             }
@@ -52,10 +51,8 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
             bodyType = (Class<?>) returnType;
         }
 
-
-        /*boolean toFlux = isFlux;
-        boolean toMono = isMono;*/
         boolean toResponse = isResponse;
+        boolean toEntity = isEntity;
 
         return new CallAdapter<Object, Object>() {
             @Override
@@ -71,35 +68,14 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
                                 WebClientCallAdapterFactory.this.webClient, request);
 
                 Mono<ClientResponse> clientResponse = webClientCall.requestBuilder().exchange();
-
                 if (toResponse) {
                     return clientResponse;
                 }
-                /*if (toResponse) {
-                    if (toMono) {
-                        Mono<Response<Mono<Object>>> responseMono = clientResponse.map(response -> {
-                            Mono<Object> body = response.bodyToMono(bodyType);
 
-                            okhttp3.Response.Builder builder = new okhttp3.Response.Builder();
-                            for (Map.Entry<String, List<String>> entry : response.headers().asHttpHeaders().entrySet()) {
-                                for (String value : entry.getValue()) {
-                                    builder.header(entry.getKey(), value);
-                                }
-                            }
-                            Response<Mono<Object>> ok = Response.success(body, builder
-                                    .request(request)
-                                    .code(response.statusCode().value())
-                                    .protocol(Protocol.HTTP_1_1) //TODO: http2
-                                    .message("OK")
-                                    .build()
-                            );
-                            return ok;
-                        });
-
-                    }
-                }*/
-
-                if (isFlux) {
+                if (toEntity) {
+                    Mono<Object> mono = clientResponse.flatMap(response -> response.toEntity(bodyType));
+                    return mono;
+                } else if (isFlux) {
                     Flux<Object> flux = clientResponse
                             .flatMapMany(response -> response.bodyToFlux(bodyType));
                     return flux;
@@ -115,14 +91,5 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
             }
         };
 
-        /*if (!(returnType instanceof ParameterizedType)) {
-            String name = isMono ? "Mono" : "Flux";
-            throw new IllegalStateException(name + " return type must be parameterized"
-                    + " as " + name + "<Foo> or " + name + "<? extends Foo>");
-        }
-
-        Type observableType = getParameterUpperBound(0, (ParameterizedType) returnType);
-
-        return new WebClientCallAdapter<>(observableType, isMono);*/
     }
 }
