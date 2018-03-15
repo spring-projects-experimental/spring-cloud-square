@@ -34,6 +34,8 @@ import retrofit2.http.GET;
 @DirtiesContext
 public class WebClientCallFactoryTests {
 
+    private static final String HELLO = "hello";
+
     @LocalServerPort
     private int port;
 
@@ -41,7 +43,7 @@ public class WebClientCallFactoryTests {
     public void webClientMonoSimple() {
         Mono<String> mono = testClient().getMono();
         assertThat(mono).isNotNull();
-        assertThat(mono.block()).isEqualTo("hello");
+        assertThat(mono.block()).isEqualTo(HELLO);
     }
 
     @Test
@@ -50,7 +52,7 @@ public class WebClientCallFactoryTests {
         assertThat(mono).isNotNull();
         ClientResponse clientResponse = mono.block();
         Mono<String> body = clientResponse.bodyToMono(String.class);
-        assertThat(body.block()).isEqualTo("hello");
+        assertThat(body.block()).isEqualTo(HELLO);
     }
 
     @Test
@@ -59,7 +61,7 @@ public class WebClientCallFactoryTests {
         assertThat(mono).isNotNull();
         ResponseEntity<String> entity = mono.block();
         assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(entity.getBody()).isEqualTo("hello");
+        assertThat(entity.getBody()).isEqualTo(HELLO);
     }
 
     @Test
@@ -68,7 +70,7 @@ public class WebClientCallFactoryTests {
         assertThat(flux).isNotNull();
         assertThat(flux.collectList().block())
                 .hasSize(1)
-                .containsExactly("hello");
+                .containsExactly(HELLO);
     }
 
     @Test
@@ -78,13 +80,13 @@ public class WebClientCallFactoryTests {
         assertThat(flux).isNotNull();
         assertThat(flux.collectList().block())
                 .hasSize(2)
-                .containsExactly("hello", "hi");
+                .containsExactly(HELLO, "hi");
     }
 
     @Test
     public void webClientSimple() {
         String hello = testClient().getString();
-        assertThat(hello).isEqualTo("hello");
+        assertThat(hello).isEqualTo(HELLO);
     }
 
     private TestClient testClient() {
@@ -128,12 +130,12 @@ public class WebClientCallFactoryTests {
     protected static class Application {
         @RequestMapping(method = RequestMethod.GET, path = "/hello")
         public String getHello() {
-            return "hello";
+            return HELLO;
         }
 
         @RequestMapping(method = RequestMethod.GET, path = "/hellos")
         public Flux<String> getHellos() {
-            return Flux.just("hello", "hi");
+            return Flux.just(HELLO, "hi");
         }
 
     }
