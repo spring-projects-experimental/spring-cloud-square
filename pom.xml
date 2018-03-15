@@ -54,7 +54,8 @@
 		<module>spring-cloud-square-dependencies</module>
 		<module>spring-cloud-square-okhttp</module>
 		<module>spring-cloud-square-retrofit</module>
-	</modules>	
+		<module>spring-cloud-square-retrofit-webclient</module>
+	</modules>
 	<profiles>
 		<profile>
 			<id>spring</id>
