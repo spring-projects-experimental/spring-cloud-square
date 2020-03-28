@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.retrofit;
+package org.springframework.cloud.square.retrofit;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
@@ -29,10 +29,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.retrofit.test.DefinedPortTests;
-import org.springframework.cloud.retrofit.test.Hello;
-import org.springframework.cloud.retrofit.test.HelloController;
-import org.springframework.cloud.retrofit.test.LoggingRetrofitConfig;
+import org.springframework.cloud.square.retrofit.test.DefinedPortTests;
+import org.springframework.cloud.square.retrofit.test.Hello;
+import org.springframework.cloud.square.retrofit.test.HelloController;
+import org.springframework.cloud.square.retrofit.test.LoggingRetrofitConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.annotation.DirtiesContext;
@@ -45,7 +45,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
-import static org.springframework.cloud.retrofit.test.HelloController.getHelloList;
+import static org.springframework.cloud.square.retrofit.test.HelloController.getHelloList;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -68,7 +68,7 @@ import retrofit2.http.Url;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest( properties = { "spring.application.name=retrofitclienturltest",
-				"logging.level.org.springframework.cloud.retrofit=DEBUG",
+				"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
 				"retrofitClient.dynamicUrlPath=/hello2",
 				"retrofitClient.myDynamicHeader=myDynamicHeaderValue",
 				"retrofit.reactor.enabled=false",

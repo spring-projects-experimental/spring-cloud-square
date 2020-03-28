@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.retrofit;
+package org.springframework.cloud.square.retrofit;
 
 import java.util.Locale;
 
@@ -24,10 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.retrofit.test.DefinedPortTests;
-import org.springframework.cloud.retrofit.test.Hello;
-import org.springframework.cloud.retrofit.test.HelloController;
-import org.springframework.cloud.retrofit.test.LoggingRetrofitConfig;
+import org.springframework.cloud.square.retrofit.test.DefinedPortTests;
+import org.springframework.cloud.square.retrofit.test.Hello;
+import org.springframework.cloud.square.retrofit.test.HelloController;
+import org.springframework.cloud.square.retrofit.test.LoggingRetrofitConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -51,7 +51,7 @@ import retrofit2.http.GET;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = { "spring.application.name=retrofitclientreactortest",
-				"logging.level.org.springframework.cloud.retrofit=DEBUG",
+				"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
 				"okhttp.ribbon.enabled=false"
 		 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext

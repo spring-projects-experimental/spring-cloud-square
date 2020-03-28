@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.retrofit.support;
+package org.springframework.cloud.square.retrofit.support;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,8 +26,8 @@ import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.retrofit.test.Hello;
-import org.springframework.cloud.retrofit.test.LocalRibbonClientConfiguration;
+import org.springframework.cloud.square.retrofit.test.Hello;
+import org.springframework.cloud.square.retrofit.test.LocalRibbonClientConfiguration;
 import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.ConversionService;
@@ -52,7 +52,7 @@ import retrofit2.http.GET;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = { "spring.application.name=retrofitribbonnoannotationtest",
-				"logging.level.org.springframework.cloud.retrofit=DEBUG",
+				"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
 				"retrofit.reactor.enabled=false",
 				"okhttp.ribbon.enabled=false",
 		 }, webEnvironment = DEFINED_PORT)

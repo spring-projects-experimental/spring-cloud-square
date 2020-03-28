@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.retrofit;
+package org.springframework.cloud.square.retrofit;
 
 import java.util.Collections;
 import java.util.List;

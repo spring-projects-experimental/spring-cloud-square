@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.retrofit;
+package org.springframework.cloud.square.retrofit;
 
 import org.springframework.cloud.context.named.NamedContextFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;

@@ -1,4 +1,4 @@
-package org.springframework.cloud.retrofit.support;
+package org.springframework.cloud.square.retrofit.support;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;

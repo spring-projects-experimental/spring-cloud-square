@@ -1,4 +1,4 @@
-package org.springframework.cloud.retrofit.test;
+package org.springframework.cloud.square.retrofit.test;
 
 /**
  * @author Spencer Gibb

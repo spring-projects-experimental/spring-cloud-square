@@ -1,4 +1,4 @@
-package org.springframework.cloud.retrofit;
+package org.springframework.cloud.square.retrofit;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -29,7 +29,7 @@ import retrofit2.http.GET;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(properties = { "spring.application.name=retrofitclientreactortest",
-        "logging.level.org.springframework.cloud.retrofit=DEBUG",
+        "logging.level.org.springframework.cloud.square.retrofit=DEBUG",
 }, webEnvironment = RANDOM_PORT)
 @DirtiesContext
 public class WebClientCallFactoryTests {

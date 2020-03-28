@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.retrofit;
+package org.springframework.cloud.square.retrofit;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -33,7 +33,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
-import org.springframework.cloud.retrofit.support.SpringConverterFactory;
+import org.springframework.cloud.square.retrofit.support.SpringConverterFactory;
 import org.springframework.cloud.square.okhttp.OkHttpClientBuilderCustomizer;
 import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;

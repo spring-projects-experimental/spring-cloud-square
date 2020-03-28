@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.retrofit.RetrofitAutoConfiguration
+org.springframework.cloud.square.retrofit.RetrofitAutoConfiguration

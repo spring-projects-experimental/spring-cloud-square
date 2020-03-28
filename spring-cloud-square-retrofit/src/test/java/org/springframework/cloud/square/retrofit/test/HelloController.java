@@ -1,4 +1,4 @@
-package org.springframework.cloud.retrofit.test;
+package org.springframework.cloud.square.retrofit.test;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

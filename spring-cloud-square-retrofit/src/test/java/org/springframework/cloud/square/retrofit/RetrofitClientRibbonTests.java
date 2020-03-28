@@ -14,30 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.retrofit.support;
+package org.springframework.cloud.square.retrofit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.retrofit.test.DefinedPortTests;
-import org.springframework.cloud.retrofit.test.Hello;
-import org.springframework.cloud.retrofit.test.HelloController;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.cloud.square.retrofit.test.Hello;
+import org.springframework.cloud.square.retrofit.test.HelloController;
+import org.springframework.cloud.square.retrofit.test.LocalRibbonClientConfiguration;
+import org.springframework.cloud.square.retrofit.test.LoggingRetrofitConfig;
+import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -47,19 +46,22 @@ import retrofit2.http.GET;
  * @author Spencer Gibb
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = { "spring.application.name=retrofitnoannotationtest",
-				"logging.level.org.springframework.cloud.retrofit=DEBUG",
+@SpringBootTest( properties = { "spring.application.name=retrofitclientribbontest",
+				"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
 				"retrofit.reactor.enabled=false",
-				"okhttp.ribbon.enabled=false",
-		 }, webEnvironment = DEFINED_PORT)
+		 }, webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class RetrofitNoAnnotationTests extends DefinedPortTests {
+public class RetrofitClientRibbonTests {
 
 	protected static final String HELLO_WORLD_1 = "hello world 1";
 
 	@Autowired
 	private TestClient testClient;
 
+	@Autowired
+	private RetrofitContext retrofitContext;
+
+	@RetrofitClient(name = "localapp")
 	protected interface TestClient {
 		@GET("/hello")
 		Call<Hello> getHello();
@@ -67,30 +69,25 @@ public class RetrofitNoAnnotationTests extends DefinedPortTests {
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
+	@EnableRetrofitClients(clients = TestClient.class, defaultConfiguration = LoggingRetrofitConfig.class)
+	@RibbonClient(name = "localapp", configuration = LocalRibbonClientConfiguration.class)
 	@SuppressWarnings("unused")
 	protected static class Application extends HelloController {
-
-		@Value("${server.port}")
-		private int port;
-
 		@Bean
-		public SpringConverterFactory springConverterFactory(ConversionService conversionService,
-															 ObjectFactory<HttpMessageConverters> messageConverters) {
-			return new SpringConverterFactory(messageConverters, conversionService);
+		@LoadBalanced
+		public OkHttpClient.Builder builder() {
+			return new OkHttpClient.Builder();
 		}
+	}
 
-		@Bean
-		public TestClient testClient(SpringConverterFactory springConverterFactory) {
-			HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-			interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-			return new Retrofit.Builder().baseUrl("http://localhost:"+port)
-					.client(new OkHttpClient.Builder().addInterceptor(interceptor).build())
-					.addConverterFactory(springConverterFactory)
-					.build()
-					.create(TestClient.class);
-		}
-
+	@Test
+	public void testOkHttpInterceptor() {
+		Retrofit retrofit = this.retrofitContext.getInstance("localapp", Retrofit.class);
+		assertThat(retrofit).isNotNull();
+		okhttp3.Call.Factory callFactory = retrofit.callFactory();
+		assertThat(callFactory).isInstanceOf(OkHttpClient.class);
+		OkHttpClient client = (OkHttpClient) callFactory;
+		assertThat(client.interceptors()).hasAtLeastOneElementOfType(OkHttpRibbonInterceptor.class);
 	}
 
 	@Test
