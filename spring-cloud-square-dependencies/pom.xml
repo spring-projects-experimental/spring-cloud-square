@@ -15,7 +15,7 @@
 	<description>Spring Cloud Square Dependencies</description>
 	<properties>
 		<okhttp.version>3.10.0</okhttp.version>
-		<retrofit.version>2.3.0</retrofit.version>
+		<retrofit.version>2.8.1</retrofit.version>
 		<retrofit-reactor.version>2.1.0</retrofit-reactor.version>
 	</properties>
 	<dependencyManagement>
