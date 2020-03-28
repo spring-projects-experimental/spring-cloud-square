@@ -41,6 +41,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.format.support.DefaultFormattingConversionService;
 
 import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
@@ -48,6 +49,7 @@ import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import reactor.core.scheduler.Scheduler;
+import retrofit2.CallAdapter;
 import retrofit2.Retrofit;
 
 /**
@@ -73,7 +75,7 @@ public class DefaultRetrofitClientConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean
+	@ConditionalOnMissingBean(ConverterFactory.class)
 	public SpringConverterFactory springConverterFactory(ConversionService conversionService) {
 		return new SpringConverterFactory(messageConverters, conversionService);
 	}
@@ -136,7 +138,7 @@ public class DefaultRetrofitClientConfiguration {
 		private Scheduler scheduler;
 
 		@Bean
-		@ConditionalOnMissingBean
+		@ConditionalOnMissingBean(CallAdapter.Factory.class)
 		public ReactorCallAdapterFactory reactorCallAdapterFactory() {
 			if (this.scheduler != null) {
 				return ReactorCallAdapterFactory.createWithScheduler(scheduler);
