@@ -15,6 +15,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.BufferedSource;
+import okio.Timeout;
 
 /**
  * See https://github.com/square/retrofit/pull/1394
@@ -121,6 +122,11 @@ public class WebClientCallFactory implements Call.Factory {
 
         @Override
         public Call clone() {
+            return null;
+        }
+
+        @Override
+        public Timeout timeout() {
             return null;
         }
     }
