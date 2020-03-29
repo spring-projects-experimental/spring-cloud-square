@@ -17,25 +17,22 @@
 package org.springframework.cloud.square.retrofit;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+
+import okhttp3.OkHttpClient;
+import retrofit2.CallAdapter;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.cloud.square.okhttp.ribbon.OkHttpRibbonInterceptor;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-
-import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
-import retrofit2.CallAdapter;
-import retrofit2.Converter;
-import retrofit2.Retrofit;
 
 /**
  * @author Spencer Gibb
@@ -132,14 +129,11 @@ class RetrofitClientFactoryBean implements FactoryBean<Object>, InitializingBean
 								String serviceIdUrl) {
 		builder.baseUrl(serviceIdUrl);
 		Map<String, OkHttpClient.Builder> instances = context.getInstances(this.name, OkHttpClient.Builder.class);
-		for (OkHttpClient.Builder clientBuilder : instances.values()) {
-			//TODO is there a framework way of finding OkHttpClient that has @LoadBalanced qualifier?
-			// see QualifierAnnotationAutowireCandidateResolver
-			List<Interceptor> interceptors = clientBuilder.interceptors();
-			Optional<Interceptor> found = interceptors.stream()
-					.filter(interceptor -> interceptor instanceof OkHttpRibbonInterceptor)
-					.findFirst();
-			if (found.isPresent()) {
+		for (Map.Entry<String, OkHttpClient.Builder> entry : instances.entrySet()) {
+			String beanName = entry.getKey();
+			OkHttpClient.Builder clientBuilder = entry.getValue();
+
+			if (applicationContext.findAnnotationOnBean(beanName, LoadBalanced.class) != null) {
 				builder.client(clientBuilder.build());
 				Retrofit retrofit = buildAndSave(context, builder);
 				return retrofit.create(this.type);
