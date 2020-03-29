@@ -28,7 +28,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
 import org.springframework.cloud.square.retrofit.test.Hello;
 import org.springframework.cloud.square.retrofit.test.LocalRibbonClientConfiguration;
-import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
+import org.springframework.cloud.square.okhttp.ribbon.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.test.annotation.DirtiesContext;

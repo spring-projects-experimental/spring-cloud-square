@@ -24,7 +24,7 @@ import java.util.Optional;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
+import org.springframework.cloud.square.okhttp.ribbon.OkHttpRibbonInterceptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;

@@ -34,8 +34,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClas
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.cloud.square.retrofit.support.SpringConverterFactory;
-import org.springframework.cloud.square.okhttp.OkHttpClientBuilderCustomizer;
-import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
+import org.springframework.cloud.square.okhttp.core.OkHttpClientBuilderCustomizer;
+import org.springframework.cloud.square.okhttp.ribbon.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -94,7 +94,7 @@ public class DefaultRetrofitClientConfiguration {
 			return () -> {
 				for (OkHttpClient.Builder builder : DefaultOkHttpConfiguration.this.httpClientBuilders) {
 					for (OkHttpClientBuilderCustomizer customizer : customizers) {
-						customizer.customize(builder);
+						customizer.accept(builder);
 					}
 				}
 			};

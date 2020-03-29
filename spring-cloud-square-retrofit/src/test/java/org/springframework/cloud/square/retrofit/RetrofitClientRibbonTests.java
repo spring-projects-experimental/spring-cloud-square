@@ -28,7 +28,7 @@ import org.springframework.cloud.square.retrofit.test.Hello;
 import org.springframework.cloud.square.retrofit.test.HelloController;
 import org.springframework.cloud.square.retrofit.test.LocalRibbonClientConfiguration;
 import org.springframework.cloud.square.retrofit.test.LoggingRetrofitConfig;
-import org.springframework.cloud.square.okhttp.OkHttpRibbonInterceptor;
+import org.springframework.cloud.square.okhttp.ribbon.OkHttpRibbonInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;

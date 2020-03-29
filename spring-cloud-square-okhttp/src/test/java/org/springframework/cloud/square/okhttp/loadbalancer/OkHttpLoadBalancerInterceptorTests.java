@@ -1,41 +1,39 @@
-package org.springframework.cloud.square.okhttp;
+package org.springframework.cloud.square.okhttp.loadbalancer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.http.GET;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.cloud.netflix.ribbon.RibbonClient;
-import org.springframework.cloud.netflix.ribbon.StaticServerList;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.loadbalancer.Server;
-import com.netflix.loadbalancer.ServerList;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-import lombok.SneakyThrows;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import retrofit2.Call;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
-import retrofit2.http.GET;
-
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-public class OkHttpRibbonInterceptorTests {
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.cloud.loadbalancer.ribbon.enabled=false")
+public class OkHttpLoadBalancerInterceptorTests {
 
 	//The serviceId that ribbon will resolve to host:port
 	public static final String SERVICE_ID = "testapp";
@@ -95,10 +93,10 @@ public class OkHttpRibbonInterceptorTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@RestController
-	// since this is a test we're giving a very specific ribbon configuration
+	// since this is a test we're giving a very specific loadbalancer configuration
 	// normally this would automatically come from a service discovery
 	// implementation like eureka from spring-cloud-netflix or spring-cloud-consul
-	@RibbonClient(name = SERVICE_ID, configuration = TestAppConfig.class)
+	@LoadBalancerClient(name = SERVICE_ID, configuration = TestAppConfig.class)
 	public static class TestApp {
 
 		@RequestMapping("/hello")
@@ -112,14 +110,7 @@ public class OkHttpRibbonInterceptorTests {
 			return new OkHttpClient.Builder();
 		}
 
-		/*@Bean
-		@LoadBalanced
-		public OkHttpClient okHttpClient(@LoadBalanced OkHttpClient.Builder builder) {
-			return builder.build();
-		}*/
-
 		@Bean
-		@DependsOnLoadBalancedClient //TODO: can this be avoided?
 		public TestAppClient testAppClient(@LoadBalanced OkHttpClient.Builder builder) {
 			Retrofit retrofit = new Retrofit.Builder()
 					// here you use a service id, or virtual hostname
@@ -140,8 +131,9 @@ public class OkHttpRibbonInterceptorTests {
 		private int port = 0;
 
 		@Bean
-		public ServerList<Server> ribbonServerList() {
-			return new StaticServerList<>(new Server("localhost", this.port));
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
+				Environment env) {
+			return ServiceInstanceListSupplier.fixed(env).instance(port, "local").build();
 		}
 	}
 

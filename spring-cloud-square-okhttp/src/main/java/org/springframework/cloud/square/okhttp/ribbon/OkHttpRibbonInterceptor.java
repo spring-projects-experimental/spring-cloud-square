@@ -1,4 +1,4 @@
-package org.springframework.cloud.square.okhttp;
+package org.springframework.cloud.square.okhttp.ribbon;
 
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
