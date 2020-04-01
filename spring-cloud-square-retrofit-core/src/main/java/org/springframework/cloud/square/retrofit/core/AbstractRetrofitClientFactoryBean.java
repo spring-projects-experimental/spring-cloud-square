@@ -29,7 +29,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -84,7 +83,7 @@ public abstract class AbstractRetrofitClientFactoryBean implements FactoryBean<O
 		this.applicationContext = context;
 	}
 
-	protected Retrofit.Builder retrofit(RetrofitContext context) {
+	protected Retrofit.Builder retrofit(RetrofitContext context, boolean hasUrl) {
 		Retrofit.Builder builder = get(context, Retrofit.Builder.class);
 
 		Map<String, Converter.Factory> converterFactories = getInstances(context, Converter.Factory.class);
@@ -126,9 +125,10 @@ public abstract class AbstractRetrofitClientFactoryBean implements FactoryBean<O
 	public Object getObject() throws Exception {
 		RetrofitContext context = applicationContext.getBean(RetrofitContext.class);
 
-		Retrofit.Builder builder = retrofit(context);
+		boolean hasUrl = StringUtils.hasText(this.url);
+		Retrofit.Builder builder = retrofit(context, hasUrl);
 
-		if (!StringUtils.hasText(this.url)) {
+		if (!hasUrl) {
 			String serviceIdUrl;
 			if (!this.name.startsWith("http")) {
 				serviceIdUrl = "http://" + this.name;
@@ -138,15 +138,10 @@ public abstract class AbstractRetrofitClientFactoryBean implements FactoryBean<O
 			}
 			builder.baseUrl(serviceIdUrl);
 
-			AnnotationConfigApplicationContext childContext = context.getContext(this.name);
-			childContext.getEnvironment().getPropertySources().addFirst(
-					new MapPropertySource("retrofit.webclient", Collections.
-							singletonMap("retrofit.webclient.is-loadbalanced", "true")));
-
 			return loadBalance(builder, context, serviceIdUrl);
 		}
 
-		if (StringUtils.hasText(this.url) && !this.url.startsWith("http")) {
+		if (hasUrl && !this.url.startsWith("http")) {
 			this.url = "http://" + this.url;
 		}
 

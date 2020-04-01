@@ -33,8 +33,8 @@ public class RetrofitClientFactoryBean extends AbstractRetrofitClientFactoryBean
 	 * WARNING! Nothing in this class should be @Autowired. It causes NPEs because of some lifecycle race condition.
 	 ***********************************/
 
-	protected Retrofit.Builder retrofit(RetrofitContext context) {
-		Retrofit.Builder builder = super.retrofit(context);
+	protected Retrofit.Builder retrofit(RetrofitContext context, boolean hasUrl) {
+		Retrofit.Builder builder = super.retrofit(context, hasUrl);
 
 		OkHttpClient.Builder clientBuilder = getOptional(context, OkHttpClient.Builder.class);
 		if (clientBuilder != null) {

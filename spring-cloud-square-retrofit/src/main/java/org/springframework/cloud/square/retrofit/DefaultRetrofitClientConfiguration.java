@@ -16,29 +16,28 @@
 
 package org.springframework.cloud.square.retrofit;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.Collections;
+import java.util.List;
 
 import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
 import reactor.core.scheduler.Scheduler;
 import retrofit2.CallAdapter;
 import retrofit2.Retrofit;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.square.okhttp.core.OkHttpClientBuilderCustomizer;
+import org.springframework.cloud.square.okhttp.loadbalancer.OkHttpLoadBalancerInterceptor;
 import org.springframework.cloud.square.okhttp.ribbon.OkHttpRibbonInterceptor;
 import org.springframework.cloud.square.retrofit.support.SpringConverterFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.ConversionService;
@@ -72,26 +71,30 @@ public class DefaultRetrofitClientConfiguration {
 	public SpringConverterFactory springConverterFactory(ConversionService conversionService) {
 		return new SpringConverterFactory(messageConverters, conversionService);
 	}
+	@Configuration
+	@ConditionalOnMissingBean({ OkHttpRibbonInterceptor.class, OkHttpLoadBalancerInterceptor.class })
+	//TODO: how to verify interceptors are applied to non-loadbalanced builders
+	protected static class DefaultOkHttpConfiguration {
+		@Autowired(required = false)
+		private List<OkHttpClient.Builder> httpClientBuilders = Collections.emptyList();
 
-	@Target({ ElementType.TYPE, ElementType.METHOD })
-	@Retention(RetentionPolicy.RUNTIME)
-	@Documented
-	@Conditional(OnRibbonDisabledCondition.class)
-	@interface ConditionalOnRibbonDisabled {
-
-	}
-
-	private static class OnRibbonDisabledCondition extends AnyNestedCondition {
-
-		public OnRibbonDisabledCondition() {
-			super(ConfigurationPhase.REGISTER_BEAN);
+		//TODO move to abstract class in core module?
+		@Bean
+		public InitializingBean okHttpClientBuilderInitializer(
+				final List<OkHttpClientBuilderCustomizer> customizers) {
+			return () -> {
+				for (OkHttpClient.Builder builder : DefaultOkHttpConfiguration.this.httpClientBuilders) {
+					for (OkHttpClientBuilderCustomizer customizer : customizers) {
+						customizer.accept(builder);
+					}
+				}
+			};
 		}
 
-		@ConditionalOnMissingClass("com.netflix.ribbon.Ribbon")
-		static class MissingClass { }
-
-		@ConditionalOnMissingBean(OkHttpRibbonInterceptor.class)
-		static class MissingBean { }
+		@Bean
+		public OkHttpClientBuilderCustomizer okHttpClientBuilderCustomizer(List<Interceptor> interceptors) {
+			return builder -> interceptors.forEach(builder::addInterceptor);
+		}
 
 	}
 

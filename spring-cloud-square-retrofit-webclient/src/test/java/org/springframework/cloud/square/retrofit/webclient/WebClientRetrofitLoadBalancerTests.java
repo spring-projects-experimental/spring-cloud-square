@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.square.retrofit;
+package org.springframework.cloud.square.retrofit.webclient;
 
-import okhttp3.OkHttpClient;
+import java.util.Objects;
+
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import retrofit2.Call;
-import retrofit2.Response;
+import reactor.core.publisher.Mono;
 import retrofit2.Retrofit;
 import retrofit2.http.GET;
 
@@ -32,16 +33,16 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
-import org.springframework.cloud.square.okhttp.loadbalancer.OkHttpLoadBalancerInterceptor;
 import org.springframework.cloud.square.retrofit.core.RetrofitClient;
 import org.springframework.cloud.square.retrofit.core.RetrofitContext;
-import org.springframework.cloud.square.retrofit.test.Hello;
-import org.springframework.cloud.square.retrofit.test.HelloController;
-import org.springframework.cloud.square.retrofit.test.LoggingRetrofitConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.core.style.ToStringCreator;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
@@ -56,7 +57,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 		"spring.cloud.loadbalancer.ribbon.enabled=false",
  }, webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class RetrofitClientLoadBalancerTests {
+public class WebClientRetrofitLoadBalancerTests {
 
 	protected static final String HELLO_WORLD_1 = "hello world 1";
 
@@ -69,38 +70,42 @@ public class RetrofitClientLoadBalancerTests {
 	@RetrofitClient("localapp")
 	protected interface TestClient {
 		@GET("/hello")
-		Call<Hello> getHello();
+		Mono<Hello> getHello();
 	}
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@EnableRetrofitClients(clients = TestClient.class, defaultConfiguration = LoggingRetrofitConfig.class)
+	@EnableRetrofitClients(clients = TestClient.class)
 	@LoadBalancerClient(name = "localapp", configuration = TestAppConfig.class)
 	@SuppressWarnings("unused")
-	protected static class Application extends HelloController {
+	@RestController
+	protected static class Application {
+
+		@GetMapping("/hello")
+		public Mono<Hello> hello() {
+			return Mono.just(new Hello(HELLO_WORLD_1));
+		}
+
 		@Bean
 		@LoadBalanced
-		public OkHttpClient.Builder builder() {
-			return new OkHttpClient.Builder();
+		public WebClient.Builder builder() {
+			return WebClient.builder();
 		}
 	}
 
 	@Test
-	public void testOkHttpInterceptor() {
+	public void testRetrofitConfiguration() {
 		Retrofit retrofit = this.retrofitContext.getInstance("localapp", Retrofit.class);
 		assertThat(retrofit).isNotNull();
-		okhttp3.Call.Factory callFactory = retrofit.callFactory();
-		assertThat(callFactory).isInstanceOf(OkHttpClient.class);
-		OkHttpClient client = (OkHttpClient) callFactory;
-		assertThat(client.interceptors()).hasAtLeastOneElementOfType(OkHttpLoadBalancerInterceptor.class);
+		assertThat(retrofit.callFactory()).isInstanceOf(WebClientCallFactory.class);
+		assertThat(retrofit.callAdapterFactories()).hasAtLeastOneElementOfType(WebClientCallAdapterFactory.class);
+		assertThat(retrofit.converterFactories()).hasAtLeastOneElementOfType(WebClientConverterFactory.class);
 	}
 
 	@Test
 	public void testSimpleType() throws Exception {
-		Response<Hello> response = this.testClient.getHello().execute();
-		assertThat(response).isNotNull();
-		assertThat(response.isSuccessful()).as("checks response successful, code %d", response.code()).isTrue();
-		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
+		Hello response = this.testClient.getHello().block();
+		Assertions.assertThat(response).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
 	public static class TestAppConfig {
@@ -111,6 +116,46 @@ public class RetrofitClientLoadBalancerTests {
 		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
 				Environment env) {
 			return ServiceInstanceListSupplier.fixed(env).instance(port, "local").build();
+		}
+	}
+
+	private static class Hello {
+		private String name;
+
+		public Hello() {
+		}
+
+		public Hello(String name) {
+			this.name = name;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+			Hello hello = (Hello) o;
+			return Objects.equals(this.name, hello.name);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.name);
+		}
+
+		@Override
+		public String toString() {
+			return new ToStringCreator(this)
+					.append("name", name)
+					.toString();
+
 		}
 	}
 }

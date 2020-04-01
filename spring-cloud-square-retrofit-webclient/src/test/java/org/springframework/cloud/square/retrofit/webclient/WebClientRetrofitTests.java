@@ -33,7 +33,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
         "logging.level.org.springframework.cloud.square.retrofit=DEBUG",
 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
-public class WebClientCallFactoryTests {
+public class WebClientRetrofitTests {
 
     private static final String HELLO = "hello";
 
@@ -146,7 +146,7 @@ public class WebClientCallFactoryTests {
     @SpringBootConfiguration
     @EnableAutoConfiguration
     @RestController
-    @EnableRetrofitClients
+    @EnableRetrofitClients(clients = TestClient.class)
     protected static class Application {
         @RequestMapping(method = RequestMethod.GET, path = "/hello")
         public String getHello() {
