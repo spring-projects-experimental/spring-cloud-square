@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.square.retrofit;
+package org.springframework.cloud.square.retrofit.webclient;
 
 import org.springframework.cloud.square.retrofit.core.AbstractRetrofitClientsRegistrar;
 
 /**
  * @author Spencer Gibb
  */
-class RetrofitClientsRegistrar extends AbstractRetrofitClientsRegistrar {
+class WebClientRetrofitClientsRegistrar extends AbstractRetrofitClientsRegistrar {
 
 	@Override
 	protected Class<?> getAnnotationClass() {
@@ -30,6 +30,6 @@ class RetrofitClientsRegistrar extends AbstractRetrofitClientsRegistrar {
 
 	@Override
 	protected Class<?> getFactoryBeanClass() {
-		return RetrofitClientFactoryBean.class;
+		return WebClientRetrofitClientFactoryBean.class;
 	}
 }

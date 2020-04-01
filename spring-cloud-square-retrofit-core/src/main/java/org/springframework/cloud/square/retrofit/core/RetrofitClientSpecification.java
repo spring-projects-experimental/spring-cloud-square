@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.square.retrofit;
+package org.springframework.cloud.square.retrofit.core;
 
 import org.springframework.cloud.context.named.NamedContextFactory;
 
@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * @author Dave Syer
  */
-class RetrofitClientSpecification implements NamedContextFactory.Specification {
+public class RetrofitClientSpecification implements NamedContextFactory.Specification {
 
 	private String name;
 

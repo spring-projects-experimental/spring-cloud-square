@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cloud.square.retrofit.core.RetrofitClient;
+import org.springframework.cloud.square.retrofit.core.RetrofitContext;
 import org.springframework.cloud.square.retrofit.test.DefinedPortTests;
 import org.springframework.cloud.square.retrofit.test.Hello;
 import org.springframework.cloud.square.retrofit.test.HelloController;

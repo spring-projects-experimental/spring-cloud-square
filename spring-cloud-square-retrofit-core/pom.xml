@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.springframework.cloud</groupId>
-	<artifactId>spring-cloud-square-retrofit</artifactId>
+	<artifactId>spring-cloud-square-retrofit-core</artifactId>
 	<version>0.3.0.BUILD-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>Spring Cloud Square Retrofit</name>
-	<description>Spring Cloud Square Retrofit</description>
+	<name>Spring Cloud Square Retrofit Core</name>
+	<description>Spring Cloud Square Retrofit Core</description>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
@@ -20,10 +20,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-square-retrofit-core</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 			<optional>true</optional>
@@ -31,6 +27,7 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -38,37 +35,8 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-loadbalancer</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
 			<groupId>com.squareup.retrofit2</groupId>
 			<artifactId>retrofit</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.jakewharton.retrofit</groupId>
-			<artifactId>retrofit2-reactor-adapter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>com.squareup.retrofit2</groupId>
-			<artifactId>converter-scalars</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>logging-interceptor</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

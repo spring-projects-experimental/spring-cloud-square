@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.square.retrofit;
+package org.springframework.cloud.square.retrofit.core;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -64,8 +64,6 @@ public @interface RetrofitClient {
 	/**
 	 * A custom <code>@Configuration</code> for the client. Can contain override
 	 * <code>@Bean</code> definition for the pieces that make up the client.
-	 *
-	 * @see DefaultRetrofitClientConfiguration for the defaults
 	 */
 	Class<?>[] configuration() default {};
 

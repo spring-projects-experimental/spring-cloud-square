@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.square.retrofit;
+package org.springframework.cloud.square.retrofit.webclient;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Retrofit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -28,15 +30,13 @@ import org.springframework.cloud.square.retrofit.core.RetrofitContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import retrofit2.Retrofit;
-
 /**
  * @author Spencer Gibb
  */
 @Configuration
 @ConditionalOnClass(Retrofit.class)
-@ConditionalOnBean(RetrofitConfiguration.Marker.class)
-public class RetrofitAutoConfiguration {
+@ConditionalOnBean(WebClientRetrofitMarkerConfiguration.Marker.class)
+public class WebClientRetrofitAutoConfiguration {
 
 	@Autowired(required = false)
 	private List<RetrofitClientSpecification> configurations = new ArrayList<>();
@@ -48,7 +48,7 @@ public class RetrofitAutoConfiguration {
 
 	@Bean
 	public RetrofitContext retrofitContext() {
-		RetrofitContext context = new RetrofitContext(DefaultRetrofitClientConfiguration.class);
+		RetrofitContext context = new RetrofitContext(WebClientRetrofitClientConfiguration.class);
 		context.setConfigurations(this.configurations);
 		return context;
 	}

@@ -24,6 +24,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.cloud.square.retrofit.core.RetrofitClient;
+import org.springframework.cloud.square.retrofit.core.RetrofitContext;
 import org.springframework.cloud.square.retrofit.test.Hello;
 import org.springframework.cloud.square.retrofit.test.HelloController;
 import org.springframework.cloud.square.retrofit.test.LocalRibbonClientConfiguration;

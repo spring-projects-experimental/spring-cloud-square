@@ -33,6 +33,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.square.okhttp.loadbalancer.OkHttpLoadBalancerInterceptor;
+import org.springframework.cloud.square.retrofit.core.RetrofitContext;
 import org.springframework.cloud.square.retrofit.test.Hello;
 import org.springframework.cloud.square.retrofit.test.HelloController;
 import org.springframework.cloud.square.retrofit.test.LoggingRetrofitConfig;
@@ -64,7 +65,6 @@ public class RetrofitClientLoadBalancerTests {
 	@Autowired
 	private RetrofitContext retrofitContext;
 
-	@RetrofitClient(name = "localapp")
 	protected interface TestClient {
 		@GET("/hello")
 		Call<Hello> getHello();

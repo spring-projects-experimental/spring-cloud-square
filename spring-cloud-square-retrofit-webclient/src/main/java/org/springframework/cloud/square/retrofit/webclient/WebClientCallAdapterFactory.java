@@ -3,7 +3,10 @@ package org.springframework.cloud.square.retrofit.webclient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,10 +19,8 @@ import retrofit2.CallAdapter;
 import retrofit2.Retrofit;
 
 public class WebClientCallAdapterFactory extends CallAdapter.Factory {
-    private final WebClient webClient;
 
-    public WebClientCallAdapterFactory(WebClient webClient) {
-        this.webClient = webClient;
+    public WebClientCallAdapterFactory() {
     }
 
     @Override
@@ -47,12 +48,18 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
             } else {
                 bodyType = (Class) genericType;
             }
+            //TODO: support Call directly?
         } else {
             bodyType = (Class<?>) returnType;
         }
 
         boolean toResponse = isResponse;
         boolean toEntity = isEntity;
+
+        if (!(retrofit.callFactory() instanceof WebClientCallFactory)) {
+            throw new IllegalStateException("Call.Factory must be of type WebClientCallFactory");
+        }
+        WebClientCallFactory callFactory = (WebClientCallFactory) retrofit.callFactory();
 
         return new CallAdapter<Object, Object>() {
             @Override
@@ -63,11 +70,9 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
             @Override
             public Object adapt(Call<Object> call) {
                 Request request = call.request();
-                WebClientCallFactory.WebClientCall webClientCall =
-                        new WebClientCallFactory.WebClientCall(
-                                WebClientCallAdapterFactory.this.webClient, request);
 
-                Mono<ClientResponse> clientResponse = webClientCall.requestBuilder().exchange();
+                Mono<ClientResponse> clientResponse = requestBuilder(callFactory.getWebClient(),
+                        request).exchange();
                 if (toResponse) {
                     return clientResponse;
                 }
@@ -92,4 +97,21 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
         };
 
     }
+
+    WebClient.RequestBodySpec requestBuilder(WebClient webClient, Request request) {
+        WebClient.RequestBodySpec spec = webClient.mutate().build()
+                .method(HttpMethod.resolve(request.method()))
+                .uri(request.url().uri())
+                .headers(httpHeaders -> {
+                    for (Map.Entry<String, List<String>> entry : request.headers().toMultimap().entrySet()) {
+                        httpHeaders.put(entry.getKey(), entry.getValue());
+                    }
+                });
+        if (request.body() != null) {
+            // spec.body()
+            // FIXME: body
+        }
+        return spec;
+    }
+
 }

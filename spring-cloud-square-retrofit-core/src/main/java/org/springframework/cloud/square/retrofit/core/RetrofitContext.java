@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.square.retrofit;
+package org.springframework.cloud.square.retrofit.core;
 
 import org.springframework.cloud.context.named.NamedContextFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -26,14 +26,14 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * @author Spencer Gibb
  * @author Dave Syer
  */
-class RetrofitContext extends NamedContextFactory<RetrofitClientSpecification> {
+public class RetrofitContext extends NamedContextFactory<RetrofitClientSpecification> {
 
-	RetrofitContext() {
-		super(DefaultRetrofitClientConfiguration.class, "retrofit", "retrofit.client.name");
+	public RetrofitContext(Class<?> defaultConfigType) {
+		super(defaultConfigType, "retrofit", "retrofit.client.name");
 	}
 
 	@Override
-	public AnnotationConfigApplicationContext getContext(String name) {
+	protected AnnotationConfigApplicationContext getContext(String name) {
 		return super.getContext(name);
 	}
 }
