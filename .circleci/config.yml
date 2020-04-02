@@ -11,6 +11,9 @@ jobs:
       ignore:
         - gh-pages # list of branches to ignore
     steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "08:b9:5f:38:7d:9a:d4:ff:cc:ca:f3:45:63:11:c6:03"
       - checkout
       - restore_cache:
           key: sc-square-{{ .Branch }}
