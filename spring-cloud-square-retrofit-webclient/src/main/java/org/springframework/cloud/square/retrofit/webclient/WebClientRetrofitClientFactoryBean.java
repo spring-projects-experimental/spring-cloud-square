@@ -81,7 +81,7 @@ public class WebClientRetrofitClientFactoryBean
 		}
 
 		throw new IllegalStateException(
-				"No WebClient for loadBalancing defined. Did you forget to include spring-cloud-loadbalancer?");
+				"No WebClient.Builder for loadBalancing defined. Did you forget to include spring-cloud-loadbalancer?");
 	}
 
 }

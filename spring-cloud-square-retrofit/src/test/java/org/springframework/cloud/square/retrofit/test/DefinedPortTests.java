@@ -1,7 +1,8 @@
 package org.springframework.cloud.square.retrofit.test;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+
 import org.springframework.util.SocketUtils;
 
 /**
@@ -9,14 +10,14 @@ import org.springframework.util.SocketUtils;
  */
 public abstract class DefinedPortTests implements TestConstants {
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() {
 		int port = SocketUtils.findAvailableTcpPort();
 		System.setProperty("server.port", String.valueOf(port));
-		System.setProperty("retrofit.client.url.tests.url", "http://localhost:"+port);
+		System.setProperty("retrofit.client.url.tests.url", "http://localhost:" + port);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void destroy() {
 		System.clearProperty("server.port");
 		System.clearProperty("retrofit.client.url.tests.url");

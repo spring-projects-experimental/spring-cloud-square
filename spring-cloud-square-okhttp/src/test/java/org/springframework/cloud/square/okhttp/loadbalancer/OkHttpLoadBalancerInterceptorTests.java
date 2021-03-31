@@ -5,8 +5,7 @@ import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
@@ -17,39 +16,69 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.cloud.loadbalancer.ribbon.enabled=false")
-public class OkHttpLoadBalancerInterceptorTests {
+@SpringBootTest(webEnvironment = RANDOM_PORT)
+class OkHttpLoadBalancerInterceptorTests {
 
-	//The serviceId that ribbon will resolve to host:port
-	public static final String SERVICE_ID = "testapp";
+	//The serviceId that SC LoadBalancer will resolve to host:port
+	private static final String SERVICE_ID = "testapp";
+	//is configured with OkHttpLoadBalancerInterceptor
+	@Autowired
+	private OkHttpClient.Builder builder;
+	//Our retrofit defined client
+	@Autowired
+	private TestAppClient testAppClient;
+
+	@Test
+	@SneakyThrows
+	void httpClientWorks() {
+		Request request = new Request.Builder()
+				// here you use a service id, or virtual hostname
+				// rather than an actual host:port, SC LoadBalancer will
+				// resolve it
+				.url("http://" + SERVICE_ID + "/hello")
+				.build();
+		Response response = builder.build().newCall(request).execute();
+		Hello hello = new ObjectMapper()
+				.readValue(response.body().byteStream(), Hello.class);
+		assertThat(hello.getValue())
+				.withFailMessage("response was wrong", hello.getValue())
+				.isEqualTo("hello okhttp");
+	}
+
+	@Test
+	@SneakyThrows
+	void retrofitWorks() {
+		retrofit2.Response<Hello> response = testAppClient.hello().execute();
+		String hello = response.body().getValue();
+		assertThat(hello).withFailMessage("response was wrong")
+				.isEqualTo("hello okhttp");
+	}
 
 	//interface that retrofit will create an implementation for
-	public interface TestAppClient {
+	interface TestAppClient {
 		@GET("/hello")
 		Call<Hello> hello();
 	}
 
 	//our data object
-	public static class Hello {
+	protected static class Hello {
 		private String value;
 
 		//for serialization
-		Hello(){}
+		Hello() {
+		}
 
 		public Hello(String value) {
 			this.value = value;
@@ -60,44 +89,14 @@ public class OkHttpLoadBalancerInterceptorTests {
 		}
 	}
 
-	//is configured with OkHttpRibbonInterceptor
-	@Autowired
-	private OkHttpClient.Builder builder;
-
-	//Our retrofit defined client
-	@Autowired
-	private TestAppClient testAppClient;
-
-	@Test
-	@SneakyThrows
-	public void httpClientWorks() {
-		Request request = new Request.Builder()
-				// here you use a service id, or virtual hostname
-				// rather than an actual host:port, ribbon will
-				// resolve it
-				.url("http://" + SERVICE_ID + "/hello")
-				.build();
-		Response response = builder.build().newCall(request).execute();
-		Hello hello = new ObjectMapper().readValue(response.body().byteStream(), Hello.class);
-		assertThat("response was wrong", hello.getValue(), is(equalTo("hello okhttp")));
-	}
-
-	@Test
-	@SneakyThrows
-	public void retrofitWorks() {
-		retrofit2.Response<Hello> response = testAppClient.hello().execute();
-		String hello = response.body().getValue();
-		assertThat("response was wrong", hello, is(equalTo("hello okhttp")));
-	}
-
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@RestController
-	// since this is a test we're giving a very specific loadbalancer configuration
+	// since this is a test we're giving a very specific LoadBalancer configuration
 	// normally this would automatically come from a service discovery
 	// implementation like eureka from spring-cloud-netflix or spring-cloud-consul
 	@LoadBalancerClient(name = SERVICE_ID, configuration = TestAppConfig.class)
-	public static class TestApp {
+	protected static class TestApp {
 
 		@RequestMapping("/hello")
 		public Hello hello() {
@@ -114,7 +113,7 @@ public class OkHttpLoadBalancerInterceptorTests {
 		public TestAppClient testAppClient(@LoadBalanced OkHttpClient.Builder builder) {
 			Retrofit retrofit = new Retrofit.Builder()
 					// here you use a service id, or virtual hostname
-					// rather than an actual host:port, ribbon will
+					// rather than an actual host:port, SC LoadBalancer will
 					// resolve it
 					.baseUrl("http://testapp")
 					.client(builder.build())
@@ -124,17 +123,18 @@ public class OkHttpLoadBalancerInterceptorTests {
 		}
 	}
 
-	// ribbon configuration that resolves SERVICE_ID to localhost and
+	// SC LoadBalancer configuration that resolves SERVICE_ID to localhost and
 	// the resolved random port
-	public static class TestAppConfig {
+	protected static class TestAppConfig {
 		@LocalServerPort
 		private int port = 0;
 
 		@Bean
-		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
-				Environment env) {
-			return ServiceInstanceListSupplier.fixed(env).instance(port, "local").build();
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+			return ServiceInstanceListSuppliers
+					.from("local", new DefaultServiceInstance("local-1", "local", "testhost", port, false));
+		}
 		}
 	}
 
-}
+

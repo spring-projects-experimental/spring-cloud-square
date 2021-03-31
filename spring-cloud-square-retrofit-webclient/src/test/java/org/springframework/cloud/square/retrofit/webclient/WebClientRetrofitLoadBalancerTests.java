@@ -18,9 +18,7 @@ package org.springframework.cloud.square.retrofit.webclient;
 
 import java.util.Objects;
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import retrofit2.Retrofit;
 import retrofit2.http.GET;
@@ -30,16 +28,16 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.cloud.square.retrofit.core.RetrofitClient;
 import org.springframework.cloud.square.retrofit.core.RetrofitContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -50,14 +48,11 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Spencer Gibb
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest( properties = { "spring.application.name=retrofitclientribbontest",
+@SpringBootTest(properties = {"spring.application.name=retrofitclientloadbalancertest",
 		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
-		"retrofit.reactor.enabled=false",
-		"spring.cloud.loadbalancer.ribbon.enabled=false",
- }, webEnvironment = RANDOM_PORT)
+		"retrofit.reactor.enabled=false"}, webEnvironment = RANDOM_PORT)
 @DirtiesContext
-public class WebClientRetrofitLoadBalancerTests {
+class WebClientRetrofitLoadBalancerTests {
 
 	protected static final String HELLO_WORLD_1 = "hello world 1";
 
@@ -94,28 +89,30 @@ public class WebClientRetrofitLoadBalancerTests {
 	}
 
 	@Test
-	public void testRetrofitConfiguration() {
-		Retrofit retrofit = this.retrofitContext.getInstance("localapp", Retrofit.class);
+	void testRetrofitConfiguration() {
+		Retrofit retrofit = retrofitContext.getInstance("localapp", Retrofit.class);
 		assertThat(retrofit).isNotNull();
 		assertThat(retrofit.callFactory()).isInstanceOf(WebClientCallFactory.class);
-		assertThat(retrofit.callAdapterFactories()).hasAtLeastOneElementOfType(WebClientCallAdapterFactory.class);
-		assertThat(retrofit.converterFactories()).hasAtLeastOneElementOfType(WebClientConverterFactory.class);
+		assertThat(retrofit.callAdapterFactories())
+				.hasAtLeastOneElementOfType(WebClientCallAdapterFactory.class);
+		assertThat(retrofit.converterFactories())
+				.hasAtLeastOneElementOfType(WebClientConverterFactory.class);
 	}
 
 	@Test
-	public void testSimpleType() throws Exception {
-		Hello response = this.testClient.getHello().block();
-		Assertions.assertThat(response).isEqualTo(new Hello(HELLO_WORLD_1));
+	void testSimpleType() {
+		Hello response = testClient.getHello().block();
+		assertThat(response).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
-	public static class TestAppConfig {
+	protected static class TestAppConfig {
 		@LocalServerPort
 		private int port = 0;
 
 		@Bean
-		public ServiceInstanceListSupplier staticServiceInstanceListSupplier(
-				Environment env) {
-			return ServiceInstanceListSupplier.fixed(env).instance(port, "local").build();
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+			return ServiceInstanceListSuppliers
+					.from("local", new DefaultServiceInstance("local-1", "local", "testhost", port, false, "http"));
 		}
 	}
 

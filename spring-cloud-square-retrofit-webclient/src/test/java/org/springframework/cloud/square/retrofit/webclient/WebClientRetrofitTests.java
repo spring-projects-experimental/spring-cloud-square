@@ -1,10 +1,9 @@
 package org.springframework.cloud.square.retrofit.webclient;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import retrofit2.http.GET;
@@ -18,7 +17,6 @@ import org.springframework.cloud.square.retrofit.core.RetrofitClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -28,7 +26,6 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest(properties = { "spring.application.name=retrofitclientreactortest",
         "logging.level.org.springframework.cloud.square.retrofit=DEBUG",
 }, webEnvironment = DEFINED_PORT)
@@ -43,28 +40,28 @@ public class WebClientRetrofitTests {
     @Autowired
     private TestClient testClient;
 
-    @BeforeClass
-    public static void init() {
+    @BeforeAll
+    static void init() {
         int port = SocketUtils.findAvailableTcpPort();
         System.setProperty("server.port", String.valueOf(port));
-        System.setProperty("retrofit.client.url.tests.url", "http://localhost:"+port);
+        System.setProperty("retrofit.client.url.tests.url", "http://localhost:" + port);
     }
 
-    @AfterClass
-    public static void destroy() {
+    @AfterAll
+    static void destroy() {
         System.clearProperty("server.port");
         System.clearProperty("retrofit.client.url.tests.url");
     }
 
     @Test
-    public void webClientMonoSimple() {
+    void webClientMonoSimple() {
         Mono<String> mono = testClient().getMono();
         assertThat(mono).isNotNull();
         assertThat(mono.block()).isEqualTo(HELLO);
     }
 
     @Test
-    public void webClientClientResponse() {
+    void webClientClientResponse() {
         Mono<ClientResponse> mono = testClient().getClientResponseMono();
         assertThat(mono).isNotNull();
         ClientResponse clientResponse = mono.block();
@@ -73,7 +70,7 @@ public class WebClientRetrofitTests {
     }
 
     @Test
-    public void webClientEntity() {
+    void webClientEntity() {
         Mono<ResponseEntity<String>> mono = testClient().getEntity();
         assertThat(mono).isNotNull();
         ResponseEntity<String> entity = mono.block();
@@ -82,7 +79,7 @@ public class WebClientRetrofitTests {
     }
 
     @Test
-    public void webClientFluxSimple() {
+    void webClientFluxSimple() {
         Flux<String> flux = testClient().getFlux();
         assertThat(flux).isNotNull();
         assertThat(flux.collectList().block())
@@ -90,9 +87,11 @@ public class WebClientRetrofitTests {
                 .containsExactly(HELLO);
     }
 
+    // FIXME?
     @Test
-    @Ignore // returns list of size 1 "hellohi"
-    public void webClientFlux() {
+    @Disabled
+    // returns list of size 1 "hellohi"
+    void webClientFlux() {
         Flux<String> flux = testClient().getHellosFlux();
         assertThat(flux).isNotNull();
         assertThat(flux.collectList().block())
@@ -101,7 +100,7 @@ public class WebClientRetrofitTests {
     }
 
     @Test
-    public void webClientSimple() {
+    void webClientSimple() {
         String hello = testClient().getString();
         assertThat(hello).isEqualTo(HELLO);
     }

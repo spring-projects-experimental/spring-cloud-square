@@ -35,7 +35,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.cloud.square.okhttp.core.OkHttpClientBuilderCustomizer;
 import org.springframework.cloud.square.okhttp.loadbalancer.OkHttpLoadBalancerInterceptor;
-import org.springframework.cloud.square.okhttp.ribbon.OkHttpRibbonInterceptor;
 import org.springframework.cloud.square.retrofit.support.SpringConverterFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,7 +71,7 @@ public class DefaultRetrofitClientConfiguration {
 		return new SpringConverterFactory(messageConverters, conversionService);
 	}
 	@Configuration
-	@ConditionalOnMissingBean({ OkHttpRibbonInterceptor.class, OkHttpLoadBalancerInterceptor.class })
+	@ConditionalOnMissingBean({OkHttpLoadBalancerInterceptor.class})
 	//TODO: how to verify interceptors are applied to non-loadbalanced builders
 	protected static class DefaultOkHttpConfiguration {
 		@Autowired(required = false)

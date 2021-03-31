@@ -16,8 +16,14 @@
 
 package org.springframework.cloud.square.retrofit.support;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import org.junit.jupiter.api.Test;
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.http.GET;
+
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,27 +37,16 @@ import org.springframework.cloud.square.retrofit.test.HelloController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Call;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.http.GET;
-
 /**
  * @author Spencer Gibb
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(properties = { "spring.application.name=retrofitnoannotationtest",
-				"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
-				"retrofit.reactor.enabled=false",
-				"okhttp.ribbon.enabled=false",
-		 }, webEnvironment = DEFINED_PORT)
+@SpringBootTest(properties = {"spring.application.name=retrofitnoannotationtest",
+		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
+		"retrofit.reactor.enabled=false"}, webEnvironment = DEFINED_PORT)
 @DirtiesContext
 public class RetrofitNoAnnotationTests extends DefinedPortTests {
 
@@ -95,9 +90,10 @@ public class RetrofitNoAnnotationTests extends DefinedPortTests {
 
 	@Test
 	public void testSimpleType() throws Exception {
-		Response<Hello> response = this.testClient.getHello().execute();
+		Response<Hello> response = testClient.getHello().execute();
 		assertThat(response).isNotNull();
-		assertThat(response.isSuccessful()).as("checks response successful, code %d", response.code()).isTrue();
+		assertThat(response.isSuccessful())
+				.as("checks response successful, code %d", response.code()).isTrue();
 		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 

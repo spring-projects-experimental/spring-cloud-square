@@ -1,3 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.springframework.cloud.square.okhttp.ribbon.OkHttpRibbonAutoConfiguration,\
 org.springframework.cloud.square.okhttp.loadbalancer.OkHttpLoadBalancerAutoConfiguration

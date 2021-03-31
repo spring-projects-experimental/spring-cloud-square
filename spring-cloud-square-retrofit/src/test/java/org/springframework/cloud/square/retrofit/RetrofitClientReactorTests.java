@@ -18,8 +18,17 @@ package org.springframework.cloud.square.retrofit;
 
 import java.util.Locale;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
+import com.jakewharton.retrofit2.adapter.reactor.Result;
+import okhttp3.OkHttpClient;
+import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.http.GET;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -32,32 +41,17 @@ import org.springframework.cloud.square.retrofit.test.HelloController;
 import org.springframework.cloud.square.retrofit.test.LoggingRetrofitConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
-import com.jakewharton.retrofit2.adapter.reactor.Result;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 
-import okhttp3.OkHttpClient;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import retrofit2.Call;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.http.GET;
-
 /**
  * @author Spencer Gibb
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(properties = { "spring.application.name=retrofitclientreactortest",
-				"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
-				"okhttp.ribbon.enabled=false"
-		 }, webEnvironment = DEFINED_PORT)
+@SpringBootTest(properties = {"spring.application.name=retrofitclientreactortest",
+		"logging.level.org.springframework.cloud.square.retrofit=DEBUG"}, webEnvironment = DEFINED_PORT)
 @DirtiesContext
-public class RetrofitClientReactorTests extends DefinedPortTests {
+class RetrofitClientReactorTests extends DefinedPortTests {
 
 	@Autowired
 	private TestClient testClient;
@@ -120,7 +114,7 @@ public class RetrofitClientReactorTests extends DefinedPortTests {
 	}
 
 	@Test
-	public void testCallAdapterFactory() {
+	void testCallAdapterFactory() {
 		Retrofit retrofit = this.retrofitContext.getInstance("localapp", Retrofit.class);
 		assertThat(retrofit).isNotNull();
 		assertThat(retrofit.callAdapterFactories())
@@ -128,42 +122,46 @@ public class RetrofitClientReactorTests extends DefinedPortTests {
 	}
 
 	@Test
-	public void testSimpleType() throws Exception {
+	void testSimpleType() throws Exception {
 		Response<Hello> response = this.testClient.getHello().execute();
 		assertThat(response).isNotNull();
-		assertThat(response.isSuccessful()).as("checks response successful, code %d", response.code()).isTrue();
+		assertThat(response.isSuccessful())
+				.as("checks response successful, code %d", response.code()).isTrue();
 		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
 	@Test
-	public void testMono() throws Exception {
+	void testMono() {
 		Mono<Hello> response = this.testClient.getHelloMono();
 		assertThat(response).isNotNull();
 		assertThat(response.block()).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
 	@Test
-	public void testMonoResponse() throws Exception {
+	void testMonoResponse() {
 		Mono<Response<Hello>> mono = this.testClient.getHelloMonoResponse();
 		assertThat(mono).isNotNull();
 		Response<Hello> response = mono.block();
-		assertThat(response.isSuccessful()).as("checks response successful, code %d", response.code()).isTrue();
+		assertThat(response.isSuccessful())
+				.as("checks response successful, code %d", response.code()).isTrue();
 		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
 	@Test
-	public void testMonoResult() throws Exception {
+	void testMonoResult() {
 		Mono<Result<Hello>> mono = this.testClient.getHelloMonoResult();
 		assertThat(mono).isNotNull();
 		Result<Hello> result = mono.block();
-		assertThat(result.isError()).as("checks result in error, error %s", result.error()).isFalse();
+		assertThat(result.isError())
+				.as("checks result in error, error %s", result.error()).isFalse();
 		Response<Hello> response = result.response();
-		assertThat(response.isSuccessful()).as("checks response successful, code %d", response.code()).isTrue();
+		assertThat(response.isSuccessful())
+				.as("checks response successful, code %d", response.code()).isTrue();
 		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
 	@Test
-	public void testFlux() throws Exception {
+	void testFlux() {
 		Flux<Hello> flux = this.testClient.getHelloFlux();
 		assertThat(flux).isNotNull();
 		assertThat(flux.blockFirst()).isEqualTo(new Hello(HELLO_WORLD_1));
