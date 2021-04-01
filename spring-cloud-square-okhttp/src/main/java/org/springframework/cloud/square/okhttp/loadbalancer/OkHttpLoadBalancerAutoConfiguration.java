@@ -8,7 +8,7 @@ import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.cloud.loadbalancer.blocking.client.BlockingLoadBalancerClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.square.okhttp.core.OkHttpBuilderBeanPostProcessor;
 import org.springframework.cloud.square.okhttp.core.OkHttpClientBuilderCustomizer;
 import org.springframework.context.ApplicationContext;
@@ -17,14 +17,15 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Spencer Gibb
+ * @author Olga Maciaszek-Sharma
  */
 @Configuration
-@ConditionalOnClass({OkHttpClient.class, BlockingLoadBalancerClient.class})
-@ConditionalOnBean(BlockingLoadBalancerClient.class)
+@ConditionalOnClass({OkHttpClient.class, LoadBalancerClient.class})
+@ConditionalOnBean(LoadBalancerClient.class)
 public class OkHttpLoadBalancerAutoConfiguration {
 
 	@Bean
-	public OkHttpLoadBalancerInterceptor okHttpLoadBalancerInterceptor(BlockingLoadBalancerClient client) {
+	public OkHttpLoadBalancerInterceptor okHttpLoadBalancerInterceptor(LoadBalancerClient client) {
 		return new OkHttpLoadBalancerInterceptor(client);
 	}
 

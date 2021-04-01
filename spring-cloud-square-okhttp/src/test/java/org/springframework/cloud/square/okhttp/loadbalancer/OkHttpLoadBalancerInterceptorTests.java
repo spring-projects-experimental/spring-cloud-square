@@ -132,7 +132,7 @@ class OkHttpLoadBalancerInterceptorTests {
 		@Bean
 		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
 			return ServiceInstanceListSuppliers
-					.from("local", new DefaultServiceInstance("local-1", "local", "testhost", port, false));
+					.from("local", new DefaultServiceInstance("local-1", "local", "localhost", port, false));
 		}
 		}
 	}

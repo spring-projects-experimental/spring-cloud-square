@@ -9,16 +9,16 @@ import okhttp3.Response;
 
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.loadbalancer.blocking.client.BlockingLoadBalancerClient;
 
 /**
  * @author Spencer Gibb
+ * @author Olga Maciaszek-Sharma
  */
 public class OkHttpLoadBalancerInterceptor implements Interceptor {
 
-	private BlockingLoadBalancerClient client;
+	private final LoadBalancerClient client;
 
-	public OkHttpLoadBalancerInterceptor(BlockingLoadBalancerClient client) {
+	public OkHttpLoadBalancerInterceptor(LoadBalancerClient client) {
 		this.client = client;
 	}
 

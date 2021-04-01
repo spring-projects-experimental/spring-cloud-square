@@ -56,18 +56,18 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
 import static org.springframework.cloud.square.retrofit.test.HelloController.getHelloList;
 
 /**
  * @author Spencer Gibb
+ * @author Olga Maciaszek-Sharma
  */
 @SpringBootTest(properties = {"spring.application.name=retrofitclienturltest",
-		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
 		"retrofitClient.dynamicUrlPath=/hello2",
 		"retrofitClient.myDynamicHeader=myDynamicHeaderValue",
-		"retrofit.reactor.enabled=false"
+		"retrofit.reactor.enabled=false",
+		"spring.cloud.loadbalancer.enabled=false"
 }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
 class RetrofitClientUrlTests extends DefinedPortTests {
@@ -155,7 +155,8 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 		InvocationHandler invocationHandler = Proxy.getInvocationHandler(this.testClient);
 		assertThat(invocationHandler).withFailMessage("invocationHandler was null")
 				.isNotNull();
-		assertNotNull("invocationHandler was null", invocationHandler);
+		assertThat(invocationHandler).withFailMessage("invocationHandler was null")
+				.isNotNull();
 	}
 
 	@Test
