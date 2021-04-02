@@ -2,11 +2,11 @@
 
 # OkHttpClient integration with Spring Cloud
 
-This module supplies integration with Square's [`OkHttpClient`](http://square.github.io/okhttp/) and  [Spring Cloud LoadBalancer](https://github.com/spring-cloud/spring-cloud-commons/spring-cloud-loadbalancer).
+This module supplies integration with Square's [`OkHttpClient`](https://square.github.io/okhttp/) and  [Spring Cloud LoadBalancer](https://github.com/spring-cloud/spring-cloud-commons/spring-cloud-loadbalancer).
 
 An application interceptor is added to the `OkHttpClient` created via autoconfiguration which resolves the scheme, host and port from Spring Cloud LoadBalancer and rewrites the url.
 
-By supporting `OkHttpClient`, it enables Square's [Retrofit](http://square.github.io/retrofit/) to use  Spring Cloud LoadBalancer as well.
+By supporting `OkHttpClient`, it enables Square's [Retrofit](https://square.github.io/retrofit/) to use  Spring Cloud LoadBalancer as well.
 
 See [`OkHttpLoadBalancerInterceptorTests`](https://github.com/spring-cloud-incubator/spring-cloud-square/blob/master/spring-cloud-square-okhttp/src/test/java/org/springframework/cloud/square/okhttp/loadbalancer/OkHttpLoadBalancerInterceptorTests.java) for Spring Cloud LoadBalancer samples.
 
