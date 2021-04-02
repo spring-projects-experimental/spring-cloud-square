@@ -24,6 +24,7 @@ import okhttp3.OkHttpClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.square.okhttp.core.OkHttpBuilderBeanPostProcessor;
 import org.springframework.cloud.square.okhttp.core.OkHttpClientBuilderCustomizer;
@@ -38,6 +39,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass({ OkHttpClient.class, LoadBalancerClient.class })
 @ConditionalOnBean(LoadBalancerClient.class)
+@ConditionalOnProperty(value = "okhttp.loadbalancer.enabled", havingValue = "true", matchIfMissing = true)
 public class OkHttpLoadBalancerAutoConfiguration {
 
 	@Bean
