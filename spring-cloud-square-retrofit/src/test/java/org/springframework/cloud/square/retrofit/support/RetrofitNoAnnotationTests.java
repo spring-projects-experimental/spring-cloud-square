@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,10 +43,12 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 /**
  * @author Spencer Gibb
+ * @author Olga Maciaszek-Sharma
  */
-@SpringBootTest(properties = {"spring.application.name=retrofitnoannotationtest",
-		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
-		"retrofit.reactor.enabled=false"}, webEnvironment = DEFINED_PORT)
+@SpringBootTest(
+		properties = { "spring.application.name=retrofitnoannotationtest",
+				"logging.level.org.springframework.cloud.square.retrofit=DEBUG", "retrofit.reactor.enabled=false" },
+		webEnvironment = DEFINED_PORT)
 @DirtiesContext
 public class RetrofitNoAnnotationTests extends DefinedPortTests {
 
@@ -55,9 +57,19 @@ public class RetrofitNoAnnotationTests extends DefinedPortTests {
 	@Autowired
 	private TestClient testClient;
 
+	@Test
+	public void testSimpleType() throws Exception {
+		Response<Hello> response = testClient.getHello().execute();
+		assertThat(response).isNotNull();
+		assertThat(response.isSuccessful()).as("checks response successful, code %d", response.code()).isTrue();
+		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
+	}
+
 	protected interface TestClient {
+
 		@GET("/hello")
 		Call<Hello> getHello();
+
 	}
 
 	@SpringBootConfiguration
@@ -70,7 +82,7 @@ public class RetrofitNoAnnotationTests extends DefinedPortTests {
 
 		@Bean
 		public SpringConverterFactory springConverterFactory(ConversionService conversionService,
-															 ObjectFactory<HttpMessageConverters> messageConverters) {
+				ObjectFactory<HttpMessageConverters> messageConverters) {
 			return new SpringConverterFactory(messageConverters, conversionService);
 		}
 
@@ -79,22 +91,11 @@ public class RetrofitNoAnnotationTests extends DefinedPortTests {
 			HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
 			interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-			return new Retrofit.Builder().baseUrl("http://localhost:"+port)
+			return new Retrofit.Builder().baseUrl("http://localhost:" + port)
 					.client(new OkHttpClient.Builder().addInterceptor(interceptor).build())
-					.addConverterFactory(springConverterFactory)
-					.build()
-					.create(TestClient.class);
+					.addConverterFactory(springConverterFactory).build().create(TestClient.class);
 		}
 
-	}
-
-	@Test
-	public void testSimpleType() throws Exception {
-		Response<Hello> response = testClient.getHello().execute();
-		assertThat(response).isNotNull();
-		assertThat(response.isSuccessful())
-				.as("checks response successful, code %d", response.code()).isTrue();
-		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
 }

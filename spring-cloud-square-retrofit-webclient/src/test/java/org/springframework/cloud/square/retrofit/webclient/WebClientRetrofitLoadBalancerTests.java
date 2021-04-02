@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,10 +47,12 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 /**
  * @author Spencer Gibb
+ * @author Olga Maciaszek-Sharma
  */
-@SpringBootTest(properties = {"spring.application.name=retrofitclientloadbalancertest",
-		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
-		"retrofit.reactor.enabled=false"}, webEnvironment = RANDOM_PORT)
+@SpringBootTest(
+		properties = { "spring.application.name=retrofitclientloadbalancertest",
+				"logging.level.org.springframework.cloud.square.retrofit=DEBUG", "retrofit.reactor.enabled=false" },
+		webEnvironment = RANDOM_PORT)
 @DirtiesContext
 class WebClientRetrofitLoadBalancerTests {
 
@@ -62,10 +64,27 @@ class WebClientRetrofitLoadBalancerTests {
 	@Autowired
 	private RetrofitContext retrofitContext;
 
+	@Test
+	void testRetrofitConfiguration() {
+		Retrofit retrofit = retrofitContext.getInstance("localapp", Retrofit.class);
+		assertThat(retrofit).isNotNull();
+		assertThat(retrofit.callFactory()).isInstanceOf(WebClientCallFactory.class);
+		assertThat(retrofit.callAdapterFactories()).hasAtLeastOneElementOfType(WebClientCallAdapterFactory.class);
+		assertThat(retrofit.converterFactories()).hasAtLeastOneElementOfType(WebClientConverterFactory.class);
+	}
+
+	@Test
+	void testSimpleType() {
+		Hello response = testClient.getHello().block();
+		assertThat(response).isEqualTo(new Hello(HELLO_WORLD_1));
+	}
+
 	@RetrofitClient("localapp")
 	protected interface TestClient {
+
 		@GET("/hello")
 		Mono<Hello> getHello();
+
 	}
 
 	@SpringBootConfiguration
@@ -86,43 +105,30 @@ class WebClientRetrofitLoadBalancerTests {
 		public WebClient.Builder builder() {
 			return WebClient.builder();
 		}
-	}
 
-	@Test
-	void testRetrofitConfiguration() {
-		Retrofit retrofit = retrofitContext.getInstance("localapp", Retrofit.class);
-		assertThat(retrofit).isNotNull();
-		assertThat(retrofit.callFactory()).isInstanceOf(WebClientCallFactory.class);
-		assertThat(retrofit.callAdapterFactories())
-				.hasAtLeastOneElementOfType(WebClientCallAdapterFactory.class);
-		assertThat(retrofit.converterFactories())
-				.hasAtLeastOneElementOfType(WebClientConverterFactory.class);
-	}
-
-	@Test
-	void testSimpleType() {
-		Hello response = testClient.getHello().block();
-		assertThat(response).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
 	protected static class TestAppConfig {
+
 		@LocalServerPort
 		private int port = 0;
 
 		@Bean
 		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
-			return ServiceInstanceListSuppliers
-					.from("local", new DefaultServiceInstance("local-1", "local", "localhost", port, false));
+			return ServiceInstanceListSuppliers.from("local",
+					new DefaultServiceInstance("local-1", "local", "localhost", port, false));
 		}
+
 	}
 
 	private static class Hello {
+
 		private String name;
 
-		public Hello() {
+		Hello() {
 		}
 
-		public Hello(String name) {
+		Hello(String name) {
 			this.name = name;
 		}
 
@@ -136,8 +142,12 @@ class WebClientRetrofitLoadBalancerTests {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
 			Hello hello = (Hello) o;
 			return Objects.equals(this.name, hello.name);
 		}
@@ -149,10 +159,10 @@ class WebClientRetrofitLoadBalancerTests {
 
 		@Override
 		public String toString() {
-			return new ToStringCreator(this)
-					.append("name", name)
-					.toString();
+			return new ToStringCreator(this).append("name", name).toString();
 
 		}
+
 	}
+
 }

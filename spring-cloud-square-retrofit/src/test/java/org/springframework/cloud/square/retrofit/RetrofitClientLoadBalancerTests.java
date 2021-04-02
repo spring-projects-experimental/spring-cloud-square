@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,7 +40,6 @@ import org.springframework.cloud.square.retrofit.test.Hello;
 import org.springframework.cloud.square.retrofit.test.HelloController;
 import org.springframework.cloud.square.retrofit.test.LoggingRetrofitConfig;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.test.annotation.DirtiesContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,10 +47,12 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 /**
  * @author Spencer Gibb
+ * @author Olga Maciaszek-Sharma
  */
-@SpringBootTest(properties = {"spring.application.name=retrofitclientloadbalancertest",
-		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
-		"retrofit.reactor.enabled=false"}, webEnvironment = RANDOM_PORT)
+@SpringBootTest(
+		properties = { "spring.application.name=retrofitclientloadbalancertest",
+				"logging.level.org.springframework.cloud.square.retrofit=DEBUG", "retrofit.reactor.enabled=false" },
+		webEnvironment = RANDOM_PORT)
 @DirtiesContext
 class RetrofitClientLoadBalancerTests {
 
@@ -63,10 +64,30 @@ class RetrofitClientLoadBalancerTests {
 	@Autowired
 	private RetrofitContext retrofitContext;
 
+	@Test
+	void testOkHttpInterceptor() {
+		Retrofit retrofit = this.retrofitContext.getInstance("localapp", Retrofit.class);
+		assertThat(retrofit).isNotNull();
+		okhttp3.Call.Factory callFactory = retrofit.callFactory();
+		assertThat(callFactory).isInstanceOf(OkHttpClient.class);
+		OkHttpClient client = (OkHttpClient) callFactory;
+		assertThat(client.interceptors()).hasAtLeastOneElementOfType(OkHttpLoadBalancerInterceptor.class);
+	}
+
+	@Test
+	void testSimpleType() throws Exception {
+		Response<Hello> response = this.testClient.getHello().execute();
+		assertThat(response).isNotNull();
+		assertThat(response.isSuccessful()).as("checks response successful, code %d", response.code()).isTrue();
+		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
+	}
+
 	@RetrofitClient("localapp")
 	protected interface TestClient {
+
 		@GET("/hello")
 		Call<Hello> getHello();
+
 	}
 
 	@SpringBootConfiguration
@@ -75,41 +96,26 @@ class RetrofitClientLoadBalancerTests {
 	@LoadBalancerClient(name = "localapp", configuration = TestAppConfig.class)
 	@SuppressWarnings("unused")
 	protected static class Application extends HelloController {
+
 		@Bean
 		@LoadBalanced
 		public OkHttpClient.Builder builder() {
 			return new OkHttpClient.Builder();
 		}
-	}
 
-	@Test
-	void testOkHttpInterceptor() {
-		Retrofit retrofit = this.retrofitContext.getInstance("localapp", Retrofit.class);
-		assertThat(retrofit).isNotNull();
-		okhttp3.Call.Factory callFactory = retrofit.callFactory();
-		assertThat(callFactory).isInstanceOf(OkHttpClient.class);
-		OkHttpClient client = (OkHttpClient) callFactory;
-		assertThat(client.interceptors())
-				.hasAtLeastOneElementOfType(OkHttpLoadBalancerInterceptor.class);
-	}
-
-	@Test
-	void testSimpleType() throws Exception {
-		Response<Hello> response = this.testClient.getHello().execute();
-		assertThat(response).isNotNull();
-		assertThat(response.isSuccessful())
-				.as("checks response successful, code %d", response.code()).isTrue();
-		assertThat(response.body()).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
 	protected static class TestAppConfig {
+
 		@LocalServerPort
 		private int port = 0;
 
 		@Bean
 		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
-			return ServiceInstanceListSuppliers
-					.from("local", new DefaultServiceInstance("local-1", "local", "localhost", port, false));
+			return ServiceInstanceListSuppliers.from("local",
+					new DefaultServiceInstance("local-1", "local", "localhost", port, false));
 		}
+
 	}
+
 }

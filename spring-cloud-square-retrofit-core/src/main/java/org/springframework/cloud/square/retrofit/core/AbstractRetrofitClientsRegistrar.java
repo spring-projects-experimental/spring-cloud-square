@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,8 +56,8 @@ import org.springframework.util.StringUtils;
 /**
  * @author Spencer Gibb
  */
-public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefinitionRegistrar,
-		ResourceLoaderAware, BeanClassLoaderAware {
+public abstract class AbstractRetrofitClientsRegistrar
+		implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, BeanClassLoaderAware {
 
 	// patterned after Spring Integration IntegrationComponentScanRegistrar
 	// and RibbonClientsConfigurationRegistgrar
@@ -80,16 +80,13 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 	}
 
 	@Override
-	public void registerBeanDefinitions(AnnotationMetadata metadata,
-			BeanDefinitionRegistry registry) {
+	public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
 		registerDefaultConfiguration(metadata, registry);
 		registerRetrofitClients(metadata, registry);
 	}
 
-	private void registerDefaultConfiguration(AnnotationMetadata metadata,
-			BeanDefinitionRegistry registry) {
-		Map<String, Object> defaultAttrs = metadata
-				.getAnnotationAttributes(getAnnotationClass().getName(), true);
+	private void registerDefaultConfiguration(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
+		Map<String, Object> defaultAttrs = metadata.getAnnotationAttributes(getAnnotationClass().getName(), true);
 
 		if (defaultAttrs != null && defaultAttrs.containsKey("defaultConfiguration")) {
 			String name;
@@ -99,24 +96,19 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 			else {
 				name = "default." + metadata.getClassName();
 			}
-			registerClientConfiguration(registry, name,
-					defaultAttrs.get("defaultConfiguration"));
+			registerClientConfiguration(registry, name, defaultAttrs.get("defaultConfiguration"));
 		}
 	}
 
-	public void registerRetrofitClients(AnnotationMetadata metadata,
-			BeanDefinitionRegistry registry) {
+	public void registerRetrofitClients(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
 		ClassPathScanningCandidateComponentProvider scanner = getScanner();
 		scanner.setResourceLoader(this.resourceLoader);
 
 		Set<String> basePackages;
 
-		Map<String, Object> attrs = metadata
-				.getAnnotationAttributes(getAnnotationClass().getName());
-		AnnotationTypeFilter annotationTypeFilter = new AnnotationTypeFilter(
-				RetrofitClient.class);
-		final Class<?>[] clients = attrs == null ? null
-				: (Class<?>[]) attrs.get("clients");
+		Map<String, Object> attrs = metadata.getAnnotationAttributes(getAnnotationClass().getName());
+		AnnotationTypeFilter annotationTypeFilter = new AnnotationTypeFilter(RetrofitClient.class);
+		final Class<?>[] clients = attrs == null ? null : (Class<?>[]) attrs.get("clients");
 		if (clients == null || clients.length == 0) {
 			scanner.addIncludeFilter(annotationTypeFilter);
 			basePackages = getBasePackages(metadata);
@@ -135,13 +127,11 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 					return clientClasses.contains(cleaned);
 				}
 			};
-			scanner.addIncludeFilter(
-					new AllTypeFilter(Arrays.asList(filter, annotationTypeFilter)));
+			scanner.addIncludeFilter(new AllTypeFilter(Arrays.asList(filter, annotationTypeFilter)));
 		}
 
 		for (String basePackage : basePackages) {
-			Set<BeanDefinition> candidateComponents = scanner
-					.findCandidateComponents(basePackage);
+			Set<BeanDefinition> candidateComponents = scanner.findCandidateComponents(basePackage);
 			for (BeanDefinition candidateComponent : candidateComponents) {
 				if (candidateComponent instanceof AnnotatedBeanDefinition) {
 					// verify annotated class is an interface
@@ -151,12 +141,10 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 							"@RetrofitClient can only be specified on an interface");
 
 					Map<String, Object> attributes = annotationMetadata
-							.getAnnotationAttributes(
-									RetrofitClient.class.getCanonicalName());
+							.getAnnotationAttributes(RetrofitClient.class.getCanonicalName());
 
 					String name = getClientName(attributes);
-					registerClientConfiguration(registry, name,
-							attributes.get("configuration"));
+					registerClientConfiguration(registry, name, attributes.get("configuration"));
 
 					registerRetrofitClient(registry, annotationMetadata, attributes);
 				}
@@ -168,11 +156,10 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 
 	protected abstract Class<?> getFactoryBeanClass();
 
-	private void registerRetrofitClient(BeanDefinitionRegistry registry,
-									 AnnotationMetadata annotationMetadata, Map<String, Object> attributes) {
+	private void registerRetrofitClient(BeanDefinitionRegistry registry, AnnotationMetadata annotationMetadata,
+			Map<String, Object> attributes) {
 		String className = annotationMetadata.getClassName();
-		BeanDefinitionBuilder definition = BeanDefinitionBuilder
-				.genericBeanDefinition(getFactoryBeanClass());
+		BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(getFactoryBeanClass());
 		validate(attributes);
 		definition.addPropertyValue("url", getUrl(attributes));
 		String name = getName(attributes);
@@ -189,15 +176,15 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 			alias = qualifier;
 		}
 
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className,
-				new String[] { alias });
+		BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className, new String[] { alias });
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
 	}
 
 	private void validate(Map<String, Object> attributes) {
 		AnnotationAttributes annotation = AnnotationAttributes.fromMap(attributes);
 		// This blows up if an aliased property is overspecified
-		//TODO: is this needed anymore //annotation.getAliasedString("name", RetrofitClient.class, null);
+		// TODO: is this needed anymore //annotation.getAliasedString("name",
+		// RetrofitClient.class, null);
 	}
 
 	/* for testing */ String getName(Map<String, Object> attributes) {
@@ -215,7 +202,8 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 			String url;
 			if (!name.startsWith("http://") && !name.startsWith("https://")) {
 				url = "http://" + name;
-			} else {
+			}
+			else {
 				url = name;
 			}
 			host = new URI(url).getHost();
@@ -228,10 +216,8 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 	}
 
 	private String resolve(String value) {
-		if (StringUtils.hasText(value)
-				&& this.resourceLoader instanceof ConfigurableApplicationContext) {
-			return ((ConfigurableApplicationContext) this.resourceLoader).getEnvironment()
-					.resolvePlaceholders(value);
+		if (StringUtils.hasText(value) && this.resourceLoader instanceof ConfigurableApplicationContext) {
+			return ((ConfigurableApplicationContext) this.resourceLoader).getEnvironment().resolvePlaceholders(value);
 		}
 		return value;
 	}
@@ -270,26 +256,20 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 		return new ClassPathScanningCandidateComponentProvider(false) {
 
 			@Override
-			protected boolean isCandidateComponent(
-					AnnotatedBeanDefinition beanDefinition) {
+			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
 				if (beanDefinition.getMetadata().isIndependent()) {
 					// TODO until SPR-11711 will be resolved
 					if (beanDefinition.getMetadata().isInterface()
-							&& beanDefinition.getMetadata()
-									.getInterfaceNames().length == 1
-							&& Annotation.class.getName().equals(beanDefinition
-									.getMetadata().getInterfaceNames()[0])) {
+							&& beanDefinition.getMetadata().getInterfaceNames().length == 1
+							&& Annotation.class.getName().equals(beanDefinition.getMetadata().getInterfaceNames()[0])) {
 						try {
-							Class<?> target = ClassUtils.forName(
-									beanDefinition.getMetadata().getClassName(),
+							Class<?> target = ClassUtils.forName(beanDefinition.getMetadata().getClassName(),
 									AbstractRetrofitClientsRegistrar.this.classLoader);
 							return !target.isAnnotation();
 						}
 						catch (Exception ex) {
 							this.logger.error(
-									"Could not load target class: "
-											+ beanDefinition.getMetadata().getClassName(),
-									ex);
+									"Could not load target class: " + beanDefinition.getMetadata().getClassName(), ex);
 
 						}
 					}
@@ -321,12 +301,11 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 		}
 
 		if (basePackages.isEmpty()) {
-			basePackages.add(
-					ClassUtils.getPackageName(importingClassMetadata.getClassName()));
+			basePackages.add(ClassUtils.getPackageName(importingClassMetadata.getClassName()));
 		}
 		return basePackages;
 	}
-	
+
 	private String getQualifier(Map<String, Object> client) {
 		if (client == null) {
 			return null;
@@ -353,18 +332,15 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 			return value;
 		}
 
-		throw new IllegalStateException("Either 'name' or 'value' must be provided in @"
-				+ RetrofitClient.class.getSimpleName());
+		throw new IllegalStateException(
+				"Either 'name' or 'value' must be provided in @" + RetrofitClient.class.getSimpleName());
 	}
 
-	private void registerClientConfiguration(BeanDefinitionRegistry registry, Object name,
-											 Object configuration) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder
-				.genericBeanDefinition(RetrofitClientSpecification.class);
+	private void registerClientConfiguration(BeanDefinitionRegistry registry, Object name, Object configuration) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RetrofitClientSpecification.class);
 		builder.addConstructorArgValue(name);
 		builder.addConstructorArgValue(configuration);
-		registry.registerBeanDefinition(
-				name + "." + RetrofitClientSpecification.class.getSimpleName(),
+		registry.registerBeanDefinition(name + "." + RetrofitClientSpecification.class.getSimpleName(),
 				builder.getBeanDefinition());
 	}
 
@@ -380,18 +356,17 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 
 		/**
 		 * Creates a new {@link AllTypeFilter} to match if all the given delegates match.
-		 *
 		 * @param delegates must not be {@literal null}.
 		 */
-		public AllTypeFilter(List<TypeFilter> delegates) {
+		AllTypeFilter(List<TypeFilter> delegates) {
 
 			Assert.notNull(delegates);
 			this.delegates = delegates;
 		}
 
 		@Override
-		public boolean match(MetadataReader metadataReader,
-				MetadataReaderFactory metadataReaderFactory) throws IOException {
+		public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory)
+				throws IOException {
 
 			for (TypeFilter filter : this.delegates) {
 				if (!filter.match(metadataReader, metadataReaderFactory)) {
@@ -401,5 +376,7 @@ public abstract class AbstractRetrofitClientsRegistrar implements ImportBeanDefi
 
 			return true;
 		}
+
 	}
+
 }

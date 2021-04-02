@@ -1,3 +1,19 @@
+/*
+ * Copyright 2013-2021 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.cloud.square.okhttp.loadbalancer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,12 +47,14 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class OkHttpLoadBalancerInterceptorTests {
 
-	//The serviceId that SC LoadBalancer will resolve to host:port
+	// The serviceId that SC LoadBalancer will resolve to host:port
 	private static final String SERVICE_ID = "testapp";
-	//is configured with OkHttpLoadBalancerInterceptor
+
+	// is configured with OkHttpLoadBalancerInterceptor
 	@Autowired
 	private OkHttpClient.Builder builder;
-	//Our retrofit defined client
+
+	// Our retrofit defined client
 	@Autowired
 	private TestAppClient testAppClient;
 
@@ -47,14 +65,10 @@ class OkHttpLoadBalancerInterceptorTests {
 				// here you use a service id, or virtual hostname
 				// rather than an actual host:port, SC LoadBalancer will
 				// resolve it
-				.url("http://" + SERVICE_ID + "/hello")
-				.build();
+				.url("http://" + SERVICE_ID + "/hello").build();
 		Response response = builder.build().newCall(request).execute();
-		Hello hello = new ObjectMapper()
-				.readValue(response.body().byteStream(), Hello.class);
-		assertThat(hello.getValue())
-				.withFailMessage("response was wrong", hello.getValue())
-				.isEqualTo("hello okhttp");
+		Hello hello = new ObjectMapper().readValue(response.body().byteStream(), Hello.class);
+		assertThat(hello.getValue()).withFailMessage("response was wrong", hello.getValue()).isEqualTo("hello okhttp");
 	}
 
 	@Test
@@ -62,21 +76,23 @@ class OkHttpLoadBalancerInterceptorTests {
 	void retrofitWorks() {
 		retrofit2.Response<Hello> response = testAppClient.hello().execute();
 		String hello = response.body().getValue();
-		assertThat(hello).withFailMessage("response was wrong")
-				.isEqualTo("hello okhttp");
+		assertThat(hello).withFailMessage("response was wrong").isEqualTo("hello okhttp");
 	}
 
-	//interface that retrofit will create an implementation for
+	// interface that retrofit will create an implementation for
 	interface TestAppClient {
+
 		@GET("/hello")
 		Call<Hello> hello();
+
 	}
 
-	//our data object
+	// our data object
 	protected static class Hello {
+
 		private String value;
 
-		//for serialization
+		// for serialization
 		Hello() {
 		}
 
@@ -87,6 +103,7 @@ class OkHttpLoadBalancerInterceptorTests {
 		public String getValue() {
 			return value;
 		}
+
 	}
 
 	@SpringBootConfiguration
@@ -115,26 +132,26 @@ class OkHttpLoadBalancerInterceptorTests {
 					// here you use a service id, or virtual hostname
 					// rather than an actual host:port, SC LoadBalancer will
 					// resolve it
-					.baseUrl("http://testapp")
-					.client(builder.build())
-					.addConverterFactory(JacksonConverterFactory.create())
-					.build();
+					.baseUrl("http://testapp").client(builder.build())
+					.addConverterFactory(JacksonConverterFactory.create()).build();
 			return retrofit.create(TestAppClient.class);
 		}
+
 	}
 
 	// SC LoadBalancer configuration that resolves SERVICE_ID to localhost and
 	// the resolved random port
 	protected static class TestAppConfig {
+
 		@LocalServerPort
 		private int port = 0;
 
 		@Bean
 		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
-			return ServiceInstanceListSuppliers
-					.from("local", new DefaultServiceInstance("local-1", "local", "localhost", port, false));
+			return ServiceInstanceListSuppliers.from("local",
+					new DefaultServiceInstance("local-1", "local", "localhost", port, false));
 		}
-		}
+
 	}
 
-
+}

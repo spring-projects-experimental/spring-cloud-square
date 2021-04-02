@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,42 +63,146 @@ import static org.springframework.cloud.square.retrofit.test.HelloController.get
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
  */
-@SpringBootTest(properties = {"spring.application.name=retrofitclienturltest",
-		"retrofitClient.dynamicUrlPath=/hello2",
-		"retrofitClient.myDynamicHeader=myDynamicHeaderValue",
-		"retrofit.reactor.enabled=false",
-		"spring.cloud.loadbalancer.enabled=false"
-}, webEnvironment = DEFINED_PORT)
+@SpringBootTest(properties = { "spring.application.name=retrofitclienturltest", "retrofitClient.dynamicUrlPath=/hello2",
+		"retrofitClient.myDynamicHeader=myDynamicHeaderValue", "retrofit.reactor.enabled=false",
+		"spring.cloud.loadbalancer.enabled=false" }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
 class RetrofitClientUrlTests extends DefinedPortTests {
 
 	@Autowired
 	private TestClient testClient;
 
+	@Value("${retrofitClient.dynamicUrlPath}")
+	private String urlAsSpringProperty;
+
+	@Value("${retrofitClient.myDynamicHeader}")
+	private String myDynamicHeader;
+
+	@Test
+	void testClient() {
+		assertThat(testClient).withFailMessage("testClient was null").isNotNull();
+		assertThat(Proxy.isProxyClass(testClient.getClass())).withFailMessage("testClient is not a java Proxy")
+				.isTrue();
+		InvocationHandler invocationHandler = Proxy.getInvocationHandler(this.testClient);
+		assertThat(invocationHandler).withFailMessage("invocationHandler was null").isNotNull();
+		assertThat(invocationHandler).withFailMessage("invocationHandler was null").isNotNull();
+	}
+
+	@Test
+	void testDynamicUrl() throws Exception {
+		Response<Hello> response = testClient.getHelloWithDynamicUrl(urlAsSpringProperty).execute();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		Hello hello = response.body();
+		assertThat(hello).withFailMessage("hello was null").isNotNull();
+		assertThat(hello).withFailMessage("hello didn't match").isEqualTo(new Hello(OI_TERRA_2));
+	}
+
+	@Test
+	void testSimpleType() throws Exception {
+		Response<Hello> response = testClient.getHello().execute();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		Hello hello = response.body();
+		assertThat(hello).withFailMessage("hello was null").isNotNull();
+		assertThat(hello).withFailMessage("hello didn't match").isEqualTo(new Hello(HELLO_WORLD_1));
+	}
+
+	@Test
+	void testSimpleTypeBody() throws Exception {
+		Response<Hello> response = testClient.postHello(new Hello("postHello")).execute();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		Hello hello = response.body();
+		assertThat(hello).withFailMessage("hello was null").isNotNull();
+		assertThat(hello).withFailMessage("hello didn't match").isEqualTo(new Hello("postHello"));
+	}
+
+	@Test
+	void testGenericType() throws Exception {
+		Response<List<Hello>> response = testClient.getHellos().execute();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		List<Hello> hellos = response.body();
+		assertThat(hellos).isNotNull();
+		assertThat(hellos).withFailMessage("hellos didn't match").isEqualTo(getHelloList());
+	}
+
+	@Test
+	void testRequestInterceptors() throws Exception {
+		Response<List<String>> response = testClient.getHelloHeaders().execute();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		List<String> headers = response.body();
+		assertThat(headers).withFailMessage("headers was null").isNotNull();
+		assertThat(headers).withFailMessage("headers didn't contain myheader1value").contains("myheader1value",
+				"myheader2value");
+	}
+
+	@Test
+	void testDynamicHeaders() throws Exception {
+		Response<String> response = testClient.getDynamicHeader(myDynamicHeader).execute();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		String header = response.body();
+		assertThat(header).withFailMessage("headers was null").isNotNull();
+		assertThat(header).withFailMessage("header was wrong").isEqualTo("myDynamicHeaderValue");
+	}
+
+	@Test
+	void testParams() throws Exception {
+		Response<List<String>> response = testClient.getParams("a", "1", "test").execute();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		List<String> params = response.body();
+		assertThat(params).withFailMessage("params was null").isNotNull();
+		assertThat(params).withFailMessage("params size was wrong").hasSize(3);
+	}
+
+	@Test
+	void testNoContentResponse() throws Exception {
+		Response<Void> response = testClient.noContent().execute();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		assertThat(response).withFailMessage("response was null").isNotNull();
+		assertThat(response.code()).withFailMessage("status code was wrong").isEqualTo(HttpStatus.NO_CONTENT.value());
+	}
+
+	@Test
+	void testHeadResponse() throws Exception {
+		Response<Void> response = testClient.head().execute();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		assertThat(response).withFailMessage("response was null").isNotNull();
+		assertThat(response.code()).withFailMessage("status code was wrong").isEqualTo(HttpStatus.OK.value());
+	}
+
+	@Test
+	void testMoreComplexHeader() throws Exception {
+		String body = "{\"value\":\"OK\"}";
+		Response<String> response = testClient.moreComplexContentType(body).execute();
+		assertThat(response).withFailMessage("response was null").isNotNull();
+		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
+		assertThat(response.body()).withFailMessage("response was incorrect").isEqualTo(body);
+	}
+
+	@Test
+	void testEnumAsQueryParam() throws Exception {
+		assertThat(testClient.getToString(Arg.A).execute().body()).isEqualTo(Arg.A.toString());
+		assertThat(testClient.getToString(Arg.B).execute().body()).isEqualTo(Arg.B.toString());
+	}
+
+	@Test
+	void testObjectAsQueryParam() throws Exception {
+		Response<String> response = testClient.getToString(new OtherArg("foo")).execute();
+		assertThat(response.body()).isEqualTo("foo");
+	}
+
 	protected enum Arg {
+
 		A, B;
 
 		@Override
 		public String toString() {
 			return name().toLowerCase(Locale.ENGLISH);
 		}
-	}
 
-	protected static class OtherArg {
-		public final String value;
-
-		public OtherArg(String value) {
-			this.value = value;
-		}
-
-		@Override
-		public String toString() {
-			return this.value;
-		}
 	}
 
 	@RetrofitClient(name = "localapp", url = "${retrofit.client.url.tests.url}", configuration = TestClientConfig.class)
 	protected interface TestClient {
+
 		@GET("/hello")
 		Call<Hello> getHello();
 
@@ -129,7 +233,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 		@HEAD("/head")
 		Call<Void> head();
 
-		@Headers({ "Content-Type: application/vnd.io.spring.cloud.test.v1+json"})
+		@Headers({ "Content-Type: application/vnd.io.spring.cloud.test.v1+json" })
 		@POST("/complex")
 		Call<String> moreComplexContentType(@Body String body);
 
@@ -138,164 +242,22 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 
 		@GET("/tostring2")
 		Call<String> getToString(@Query("arg") OtherArg arg);
+
 	}
 
-	@Value("${retrofitClient.dynamicUrlPath}")
-	private String urlAsSpringProperty;
-	@Value("${retrofitClient.myDynamicHeader}")
-	private String myDynamicHeader;
+	protected static class OtherArg {
 
-	@Test
-	void testClient() {
-		assertThat(testClient).withFailMessage("testClient was null")
-				.isNotNull();
-		assertThat(Proxy.isProxyClass(testClient.getClass()))
-				.withFailMessage("testClient is not a java Proxy")
-				.isTrue();
-		InvocationHandler invocationHandler = Proxy.getInvocationHandler(this.testClient);
-		assertThat(invocationHandler).withFailMessage("invocationHandler was null")
-				.isNotNull();
-		assertThat(invocationHandler).withFailMessage("invocationHandler was null")
-				.isNotNull();
-	}
+		public final String value;
 
-	@Test
-	void testDynamicUrl() throws Exception {
-		Response<Hello> response = testClient
-				.getHelloWithDynamicUrl(urlAsSpringProperty).execute();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		Hello hello = response.body();
-		assertThat(hello).withFailMessage("hello was null")
-				.isNotNull();
-		assertThat(hello).withFailMessage("hello didn't match")
-				.isEqualTo(new Hello(OI_TERRA_2));
-	}
+		public OtherArg(String value) {
+			this.value = value;
+		}
 
-	@Test
-	void testSimpleType() throws Exception {
-		Response<Hello> response = testClient.getHello().execute();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		Hello hello = response.body();
-		assertThat(hello).withFailMessage("hello was null").isNotNull();
-		assertThat(hello).withFailMessage("hello didn't match")
-				.isEqualTo(new Hello(HELLO_WORLD_1));
-	}
+		@Override
+		public String toString() {
+			return this.value;
+		}
 
-	@Test
-	void testSimpleTypeBody() throws Exception {
-		Response<Hello> response = testClient.postHello(new Hello("postHello"))
-				.execute();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		Hello hello = response.body();
-		assertThat(hello).withFailMessage("hello was null").isNotNull();
-		assertThat(hello).withFailMessage("hello didn't match")
-				.isEqualTo(new Hello("postHello"));
-	}
-
-	@Test
-	void testGenericType() throws Exception {
-		Response<List<Hello>> response = testClient.getHellos().execute();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		List<Hello> hellos = response.body();
-		assertThat(hellos).isNotNull();
-		assertThat(hellos).withFailMessage("hellos didn't match")
-				.isEqualTo(getHelloList());
-	}
-
-	@Test
-	void testRequestInterceptors() throws Exception {
-		Response<List<String>> response = testClient.getHelloHeaders().execute();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		List<String> headers = response.body();
-		assertThat(headers).withFailMessage("headers was null")
-				.isNotNull();
-		assertThat(headers).withFailMessage("headers didn't contain myheader1value")
-				.contains("myheader1value", "myheader2value");
-	}
-
-	@Test
-	void testDynamicHeaders() throws Exception {
-		Response<String> response = testClient.getDynamicHeader(myDynamicHeader)
-				.execute();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		String header = response.body();
-		assertThat(header).withFailMessage("headers was null")
-				.isNotNull();
-		assertThat(header).withFailMessage("header was wrong")
-				.isEqualTo("myDynamicHeaderValue");
-	}
-
-	@Test
-	void testParams() throws Exception {
-		Response<List<String>> response = testClient.getParams("a", "1", "test")
-				.execute();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		List<String> params = response.body();
-		assertThat(params).withFailMessage("params was null").isNotNull();
-		assertThat(params).withFailMessage("params size was wrong")
-				.hasSize(3);
-	}
-
-	@Test
-	void testNoContentResponse() throws Exception {
-		Response<Void> response = testClient.noContent().execute();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		assertThat(response).withFailMessage("response was null").isNotNull();
-		assertThat(response.code()).withFailMessage("status code was wrong")
-				.isEqualTo(HttpStatus.NO_CONTENT.value());
-	}
-
-	@Test
-	void testHeadResponse() throws Exception {
-		Response<Void> response = testClient.head().execute();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		assertThat(response).withFailMessage("response was null").isNotNull();
-		assertThat(response.code()).withFailMessage("status code was wrong")
-				.isEqualTo(HttpStatus.OK.value());
-	}
-
-	@Test
-	void testMoreComplexHeader() throws Exception {
-		String body = "{\"value\":\"OK\"}";
-		Response<String> response = testClient.moreComplexContentType(body).execute();
-		assertThat(response).withFailMessage("response was null").isNotNull();
-		assertThat(response.isSuccessful())
-				.withFailMessage("response was unsuccessful " + response.code())
-				.isTrue();
-		assertThat(response.body()).withFailMessage("response was incorrect")
-				.isEqualTo(body);
-	}
-
-	@Test
-	void testEnumAsQueryParam() throws Exception {
-		assertThat(testClient.getToString(Arg.A).execute().body())
-				.isEqualTo(Arg.A.toString());
-		assertThat(testClient.getToString(Arg.B).execute().body())
-				.isEqualTo(Arg.B.toString());
-	}
-
-	@Test
-	void testObjectAsQueryParam() throws Exception {
-		Response<String> response = testClient.getToString(new OtherArg("foo")).execute();
-		assertThat(response.body()).isEqualTo("foo");
 	}
 
 	protected static class TestClientConfig {
@@ -303,9 +265,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 		@Bean
 		public Interceptor interceptor1() {
 			return chain -> {
-				Request request = chain.request().newBuilder()
-						.addHeader(MYHEADER1, "myheader1value")
-						.build();
+				Request request = chain.request().newBuilder().addHeader(MYHEADER1, "myheader1value").build();
 				return chain.proceed(request);
 			};
 		}
@@ -313,20 +273,19 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 		@Bean
 		public Interceptor interceptor2() {
 			return chain -> {
-				Request request = chain.request().newBuilder()
-						.addHeader(MYHEADER2, "myheader2value")
-						.build();
+				Request request = chain.request().newBuilder().addHeader(MYHEADER2, "myheader2value").build();
 				return chain.proceed(request);
 			};
 		}
+
 	}
 
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@EnableRetrofitClients(clients = {TestClient.class,},
-			defaultConfiguration = LoggingRetrofitConfig.class)
+	@EnableRetrofitClients(clients = { TestClient.class }, defaultConfiguration = LoggingRetrofitConfig.class)
 	@SuppressWarnings("unused")
 	protected static class Application extends HelloController {
+
 		@Bean
 		public OkHttpClient.Builder builder() {
 			return new OkHttpClient.Builder();
@@ -347,13 +306,11 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 		}
 
 		@GetMapping("/dynamicheaders")
-		public String getDynamicHeader(
-				@RequestHeader("myDynamicHeader") String myDynamicHeader) {
+		public String getDynamicHeader(@RequestHeader("myDynamicHeader") String myDynamicHeader) {
 			return myDynamicHeader;
 		}
 
-		@PostMapping(path = "/complex",
-				consumes = "application/vnd.io.spring.cloud.test.v1+json",
+		@PostMapping(path = "/complex", consumes = "application/vnd.io.spring.cloud.test.v1+json",
 				produces = "application/vnd.io.spring.cloud.test.v1+json")
 		String complex(String body) {
 			return "{\"value\":\"OK\"}";
@@ -368,6 +325,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 		String getToString(@RequestParam("arg") OtherArg arg) {
 			return arg.value;
 		}
+
 	}
 
 }

@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,10 +16,10 @@
 
 package org.springframework.cloud.square.retrofit.core;
 
-import org.springframework.cloud.context.named.NamedContextFactory;
-
 import java.util.Arrays;
 import java.util.Objects;
+
+import org.springframework.cloud.context.named.NamedContextFactory;
 
 /**
  * @author Dave Syer
@@ -56,11 +56,14 @@ public class RetrofitClientSpecification implements NamedContextFactory.Specific
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		RetrofitClientSpecification that = (RetrofitClientSpecification) o;
-		return Objects.equals(name, that.name) &&
-				Arrays.equals(configuration, that.configuration);
+		return Objects.equals(name, that.name) && Arrays.equals(configuration, that.configuration);
 	}
 
 	@Override
@@ -76,4 +79,5 @@ public class RetrofitClientSpecification implements NamedContextFactory.Specific
 		sb.append('}');
 		return sb.toString();
 	}
+
 }
