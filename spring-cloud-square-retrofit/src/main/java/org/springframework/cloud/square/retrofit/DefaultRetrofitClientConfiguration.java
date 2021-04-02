@@ -74,7 +74,6 @@ public class DefaultRetrofitClientConfiguration {
 
 	@Configuration
 	@ConditionalOnMissingBean({ OkHttpLoadBalancerInterceptor.class })
-	// TODO: how to verify interceptors are applied to non-loadbalanced builders
 	protected static class DefaultOkHttpConfiguration {
 
 		@Autowired(required = false)
