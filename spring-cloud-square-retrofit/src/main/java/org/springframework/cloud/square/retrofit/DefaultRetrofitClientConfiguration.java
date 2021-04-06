@@ -91,6 +91,8 @@ public class DefaultRetrofitClientConfiguration {
 
 		@Bean
 		public OkHttpClientBuilderCustomizer okHttpClientBuilderCustomizer(List<Interceptor> interceptors) {
+			// Avoid adding interceptors added via OkHttpLoadBalancerAutoConfiguration
+			// twice.
 			return builder -> interceptors.stream().filter(interceptor -> !builder.interceptors().contains(interceptor))
 					.forEach(builder::addInterceptor);
 		}
