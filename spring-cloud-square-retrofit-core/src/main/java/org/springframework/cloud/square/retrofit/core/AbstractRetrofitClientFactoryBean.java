@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,10 +35,12 @@ import org.springframework.util.StringUtils;
 /**
  * @author Spencer Gibb
  */
-public abstract class AbstractRetrofitClientFactoryBean implements FactoryBean<Object>, InitializingBean,
-		ApplicationContextAware {
+public abstract class AbstractRetrofitClientFactoryBean
+		implements FactoryBean<Object>, InitializingBean, ApplicationContextAware {
+
 	/***********************************
-	 * WARNING! Nothing in this class should be @Autowired. It causes NPEs because of some lifecycle race condition.
+	 * WARNING! Nothing in this class should be @Autowired. It causes NPEs because of some
+	 * lifecycle race condition.
 	 ***********************************/
 
 	protected Class<?> type;
@@ -92,7 +94,7 @@ public abstract class AbstractRetrofitClientFactoryBean implements FactoryBean<O
 		Map<String, CallAdapter.Factory> callAdapterFactories = getInstances(context, CallAdapter.Factory.class);
 		callAdapterFactories.values().forEach(builder::addCallAdapterFactory);
 
-		builder.validateEagerly(true); //TODO: allow customization
+		builder.validateEagerly(true); // TODO: allow customization
 
 		return builder;
 	}
@@ -108,8 +110,7 @@ public abstract class AbstractRetrofitClientFactoryBean implements FactoryBean<O
 	protected <T> T get(RetrofitContext context, Class<T> type) {
 		T instance = context.getInstance(this.name, type);
 		if (instance == null) {
-			throw new IllegalStateException("No bean found of type " + type + " for "
-					+ this.name);
+			throw new IllegalStateException("No bean found of type " + type + " for " + this.name);
 		}
 		return instance;
 	}
@@ -118,8 +119,7 @@ public abstract class AbstractRetrofitClientFactoryBean implements FactoryBean<O
 		return context.getInstance(this.name, type);
 	}
 
-	protected abstract Object loadBalance(Retrofit.Builder builder, RetrofitContext context,
-								String serviceIdUrl);
+	protected abstract Object loadBalance(Retrofit.Builder builder, RetrofitContext context, String serviceIdUrl);
 
 	@Override
 	public Object getObject() throws Exception {

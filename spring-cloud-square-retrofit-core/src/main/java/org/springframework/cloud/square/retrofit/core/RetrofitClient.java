@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,9 +26,10 @@ import org.springframework.core.annotation.AliasFor;
 
 /**
  * Annotation for interfaces declaring that a REST client with that interface should be
- * created (e.g. for autowiring into another component). If ribbon is available it will be
- * used to load balance the backend requests, and the load balancer can be configured
- * using a <code>@RibbonClient</code> with the same name (i.e. value) as the client.
+ * created (e.g. for autowiring into another component). If SC LoadBalancer is available
+ * it will be used to load-balance the backend requests, and the LoadBalancer can be
+ * configured using a <code>@LoadBalancerClient</code> with the same name (i.e. value) as
+ * the client.
  *
  * @author Spencer Gibb
  */
@@ -50,7 +51,7 @@ public @interface RetrofitClient {
 	 */
 	@AliasFor("value")
 	String name() default "";
-	
+
 	/**
 	 * Sets the <code>@Qualifier</code> value for the client.
 	 */

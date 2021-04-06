@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,8 +29,10 @@ import org.springframework.cloud.square.retrofit.core.RetrofitContext;
  * @author Spencer Gibb
  */
 public class RetrofitClientFactoryBean extends AbstractRetrofitClientFactoryBean {
+
 	/***********************************
-	 * WARNING! Nothing in this class should be @Autowired. It causes NPEs because of some lifecycle race condition.
+	 * WARNING! Nothing in this class should be @Autowired. It causes NPEs because of some
+	 * lifecycle race condition.
 	 ***********************************/
 
 	protected Retrofit.Builder retrofit(RetrofitContext context, boolean hasUrl) {
@@ -44,8 +46,7 @@ public class RetrofitClientFactoryBean extends AbstractRetrofitClientFactoryBean
 		return builder;
 	}
 
-	protected Object loadBalance(Retrofit.Builder builder, RetrofitContext context,
-								String serviceIdUrl) {
+	protected Object loadBalance(Retrofit.Builder builder, RetrofitContext context, String serviceIdUrl) {
 		Map<String, OkHttpClient.Builder> instances = context.getInstances(this.name, OkHttpClient.Builder.class);
 		for (Map.Entry<String, OkHttpClient.Builder> entry : instances.entrySet()) {
 			String beanName = entry.getKey();

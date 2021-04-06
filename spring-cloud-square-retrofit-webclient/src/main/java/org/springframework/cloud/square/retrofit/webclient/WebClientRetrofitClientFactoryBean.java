@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2016 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,8 +28,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 /**
  * @author Spencer Gibb
  */
-public class WebClientRetrofitClientFactoryBean
-		extends AbstractRetrofitClientFactoryBean {
+public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFactoryBean {
+
 	/***********************************
 	 * WARNING! Nothing in this class should be @Autowired. It causes NPEs because of some
 	 * lifecycle race condition.
@@ -42,14 +42,12 @@ public class WebClientRetrofitClientFactoryBean
 		if (hasUrl) {
 			// this is not load balanced and needs a WebClient
 			WebClient.Builder nonLoadBalancedBuilder = null;
-			Map<String, WebClient.Builder> instances = context.getInstances(this.name,
-					WebClient.Builder.class);
+			Map<String, WebClient.Builder> instances = context.getInstances(this.name, WebClient.Builder.class);
 			for (Map.Entry<String, WebClient.Builder> entry : instances.entrySet()) {
 				String beanName = entry.getKey();
 				WebClient.Builder clientBuilder = entry.getValue();
 
-				if (applicationContext.findAnnotationOnBean(beanName,
-						LoadBalanced.class) == null) {
+				if (applicationContext.findAnnotationOnBean(beanName, LoadBalanced.class) == null) {
 					nonLoadBalancedBuilder = clientBuilder;
 					break;
 				}
@@ -64,16 +62,13 @@ public class WebClientRetrofitClientFactoryBean
 		return builder;
 	}
 
-	protected Object loadBalance(Retrofit.Builder builder, RetrofitContext context,
-			String serviceIdUrl) {
-		Map<String, WebClient.Builder> instances = context.getInstances(this.name,
-				WebClient.Builder.class);
+	protected Object loadBalance(Retrofit.Builder builder, RetrofitContext context, String serviceIdUrl) {
+		Map<String, WebClient.Builder> instances = context.getInstances(this.name, WebClient.Builder.class);
 		for (Map.Entry<String, WebClient.Builder> entry : instances.entrySet()) {
 			String beanName = entry.getKey();
 			WebClient.Builder clientBuilder = entry.getValue();
 
-			if (applicationContext.findAnnotationOnBean(beanName,
-					LoadBalanced.class) != null) {
+			if (applicationContext.findAnnotationOnBean(beanName, LoadBalanced.class) != null) {
 				builder.callFactory(new WebClientCallFactory(clientBuilder.build()));
 				Retrofit retrofit = buildAndSave(context, builder);
 				return retrofit.create(this.type);
@@ -81,7 +76,7 @@ public class WebClientRetrofitClientFactoryBean
 		}
 
 		throw new IllegalStateException(
-				"No WebClient for loadBalancing defined. Did you forget to include spring-cloud-loadbalancer?");
+				"No WebClient.Builder for loadBalancing defined. Did you forget to include spring-cloud-loadbalancer?");
 	}
 
 }

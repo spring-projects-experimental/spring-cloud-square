@@ -1,11 +1,11 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Import;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Import({WebClientRetrofitMarkerConfiguration.class, WebClientRetrofitClientsRegistrar.class})
+@Import({ WebClientRetrofitMarkerConfiguration.class, WebClientRetrofitClientsRegistrar.class })
 public @interface EnableRetrofitClients {
 
 	/**
@@ -56,7 +56,6 @@ public @interface EnableRetrofitClients {
 	 * <p>
 	 * Use {@link #basePackageClasses()} for a type-safe alternative to String-based
 	 * package names.
-	 *
 	 * @return the array of 'basePackages'.
 	 */
 	String[] basePackages() default {};
@@ -67,7 +66,6 @@ public @interface EnableRetrofitClients {
 	 * <p>
 	 * Consider creating a special no-op marker class or interface in each package that
 	 * serves no purpose other than being referenced by this attribute.
-	 *
 	 * @return the array of 'basePackageClasses'.
 	 */
 	Class<?>[] basePackageClasses() default {};
@@ -81,8 +79,10 @@ public @interface EnableRetrofitClients {
 	Class<?>[] defaultConfiguration() default {};
 
 	/**
-	 * List of classes annotated with @RetrofitClient. If not empty, disables classpath scanning.
+	 * List of classes annotated with @RetrofitClient. If not empty, disables classpath
+	 * scanning.
 	 * @return
 	 */
 	Class<?>[] clients() default {};
+
 }
