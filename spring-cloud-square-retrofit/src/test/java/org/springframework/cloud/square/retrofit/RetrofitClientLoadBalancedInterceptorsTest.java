@@ -22,7 +22,6 @@ import java.util.List;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -32,6 +31,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.client.DefaultServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.cloud.square.retrofit.core.RetrofitClient;
 import org.springframework.cloud.square.retrofit.test.DefinedPortTests;
 import org.springframework.cloud.square.retrofit.test.HelloController;
@@ -42,23 +47,21 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.DEFINED_PORT;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
  */
 @SpringBootTest(properties = { "spring.application.name=retrofitclienturltest", "retrofit.reactor.enabled=false" },
-		webEnvironment = DEFINED_PORT)
+		webEnvironment = RANDOM_PORT)
 @DirtiesContext
-// Issue: https://github.com/spring-cloud-incubator/spring-cloud-square/issues/18
-@Disabled
-// FIXME
 class RetrofitClientLoadBalancedInterceptorsTest extends DefinedPortTests {
 
 	@Autowired
 	private TestClient testClient;
 
+	// Issue: https://github.com/spring-cloud-incubator/spring-cloud-square/issues/18
 	@Test
 	void testRequestInterceptors() throws Exception {
 		Response<List<String>> response = testClient.getHelloHeaders().execute();
@@ -69,7 +72,7 @@ class RetrofitClientLoadBalancedInterceptorsTest extends DefinedPortTests {
 				"myheader2value");
 	}
 
-	@RetrofitClient(name = "localapp", url = "${retrofit.client.url.tests.url}", configuration = TestClientConfig.class)
+	@RetrofitClient(name = "local", configuration = TestClientConfig.class)
 	protected interface TestClient {
 
 		@GET("/helloheaders")
@@ -100,13 +103,9 @@ class RetrofitClientLoadBalancedInterceptorsTest extends DefinedPortTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@EnableRetrofitClients(clients = { TestClient.class }, defaultConfiguration = LoggingRetrofitConfig.class)
+	@LoadBalancerClient(name = "local", configuration = TestAppConfig.class)
 	@SuppressWarnings("unused")
 	protected static class Application extends HelloController {
-
-		@Bean
-		public OkHttpClient.Builder builder() {
-			return new OkHttpClient.Builder();
-		}
 
 		@GetMapping("/helloheaders")
 		public List<String> getHelloHeaders(@RequestHeader(MYHEADER1) String myheader1,
@@ -115,6 +114,25 @@ class RetrofitClientLoadBalancedInterceptorsTest extends DefinedPortTests {
 			headers.add(myheader1);
 			headers.add(myheader2);
 			return headers;
+		}
+
+		@Bean
+		@LoadBalanced
+		public OkHttpClient.Builder builder() {
+			return new OkHttpClient.Builder();
+		}
+
+	}
+
+	protected static class TestAppConfig {
+
+		@LocalServerPort
+		private int port = 0;
+
+		@Bean
+		public ServiceInstanceListSupplier staticServiceInstanceListSupplier() {
+			return ServiceInstanceListSuppliers.from("local",
+					new DefaultServiceInstance("local-1", "local", "localhost", port, false));
 		}
 
 	}
