@@ -49,8 +49,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
  */
-@SpringBootTest(properties = { "spring.application.name=retrofitclientreactortest",
-		"logging.level.org.springframework.cloud.square.retrofit=DEBUG" }, webEnvironment = DEFINED_PORT)
+@SpringBootTest(
+		properties = { "spring.application.name=retrofitclientreactortest", "okhttp.loadbalancer.enabled=false" },
+		webEnvironment = DEFINED_PORT)
 @DirtiesContext
 class RetrofitClientReactorTests extends DefinedPortTests {
 

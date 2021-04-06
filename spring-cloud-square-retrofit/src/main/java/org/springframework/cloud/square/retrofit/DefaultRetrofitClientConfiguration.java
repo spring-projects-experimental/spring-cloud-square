@@ -34,7 +34,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.cloud.square.okhttp.core.OkHttpClientBuilderCustomizer;
-import org.springframework.cloud.square.okhttp.loadbalancer.OkHttpLoadBalancerInterceptor;
 import org.springframework.cloud.square.retrofit.support.SpringConverterFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -73,7 +72,6 @@ public class DefaultRetrofitClientConfiguration {
 	}
 
 	@Configuration
-	@ConditionalOnMissingBean({ OkHttpLoadBalancerInterceptor.class })
 	protected static class DefaultOkHttpConfiguration {
 
 		@Autowired(required = false)
@@ -93,7 +91,10 @@ public class DefaultRetrofitClientConfiguration {
 
 		@Bean
 		public OkHttpClientBuilderCustomizer okHttpClientBuilderCustomizer(List<Interceptor> interceptors) {
-			return builder -> interceptors.forEach(builder::addInterceptor);
+			// Avoid adding interceptors added via OkHttpLoadBalancerAutoConfiguration
+			// twice.
+			return builder -> interceptors.stream().filter(interceptor -> !builder.interceptors().contains(interceptor))
+					.forEach(builder::addInterceptor);
 		}
 
 	}
