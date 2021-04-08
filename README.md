@@ -1,5 +1,3 @@
-[![CircleCI](https://circleci.com/gh/spring-cloud-incubator/spring-cloud-square.svg?style=svg)](https://circleci.com/gh/spring-cloud-incubator/spring-cloud-square)
-
 # OkHttpClient integration with Spring Cloud
 
 This module supplies integration with Square's [`OkHttpClient`](https://square.github.io/okhttp/) and  [Spring Cloud LoadBalancer](https://github.com/spring-cloud/spring-cloud-commons/spring-cloud-loadbalancer).
