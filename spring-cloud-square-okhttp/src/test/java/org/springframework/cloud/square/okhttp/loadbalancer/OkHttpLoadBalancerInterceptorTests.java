@@ -16,8 +16,9 @@
 
 package org.springframework.cloud.square.okhttp.loadbalancer;
 
+import java.io.IOException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -59,8 +60,7 @@ class OkHttpLoadBalancerInterceptorTests {
 	private TestAppClient testAppClient;
 
 	@Test
-	@SneakyThrows
-	void httpClientWorks() {
+	void httpClientWorks() throws IOException {
 		Request request = new Request.Builder()
 				// here you use a service id, or virtual hostname
 				// rather than an actual host:port, SC LoadBalancer will
@@ -72,8 +72,7 @@ class OkHttpLoadBalancerInterceptorTests {
 	}
 
 	@Test
-	@SneakyThrows
-	void retrofitWorks() {
+	void retrofitWorks() throws IOException {
 		retrofit2.Response<Hello> response = testAppClient.hello().execute();
 		String hello = response.body().getValue();
 		assertThat(hello).withFailMessage("response was wrong").isEqualTo("hello okhttp");

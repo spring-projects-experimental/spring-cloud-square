@@ -16,18 +16,45 @@
 
 package org.springframework.cloud.square.retrofit.test;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.Objects;
 
 /**
  * @author Spencer Gibb
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class Hello {
 
+	public Hello(String message) {
+		this.message = message;
+	}
+
+	public Hello() {
+	}
+
 	private String message;
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof Hello)) {
+			return false;
+		}
+		Hello hello = (Hello) o;
+		return Objects.equals(message, hello.message);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(message);
+	}
 
 }
