@@ -1,0 +1,163 @@
+= Spring Cloud Square
+include::_attributes.adoc[]
+
+include::intro.adoc[]
+
+NOTE: Spring Cloud is released under the non-restrictive Apache 2.0 license.
+If you want to contribute to this section of the documentation or if you find an error, you can find the source code and issue trackers for the project at {docslink}[github].
+
+== Quick Start
+
+include::quickstart.adoc[leveloffset=+1]
+
+Spring Cloud Square provides Spring Cloud LoadBalancer integration for https://square.github.io/okhttp/[OkHttpClient] and https://square.github.io/retrofit/[Retrofit], as well as a WebClient-backed Retrofit clients.
+
+== OkHttpClient Spring Cloud LoadBalancer Integration
+
+An interceptor is added to the `OkHttpClient` created by auto-configuration to resolve the scheme, host, and port from Spring Cloud LoadBalancer and rewrite the URL.
+
+You can access this functionality by annotating `OkHttpClient.Builder` beans with `@LoadBalanced`:
+
+[source,java]
+----
+@Configuration
+class OkHttpClientConfig{
+@Bean
+@LoadBalanced
+public OkHttpClient.Builder okHttpClientBuilder() {
+    return new OkHttpClient.Builder();
+    }
+}
+----
+
+Then you can use the `serviceId` or virtual hostname rather than an actual `host:port` in your requests -- SC LoadBalancer resolves it by selecting one of the available service instances:
+
+[source,java]
+----
+Request request = new Request.Builder()
+                        .url("http://serviceId/hello").build();
+Response response = builder.build().newCall(request).execute();
+----
+
+You can also https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#custom-loadbalancer-configuration[use the `@LoadBalancerClient` and `@LoadBalancerClients` annotations to pass custom configuration] to load-balanced OkHttpClient instances.
+
+ This integration supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
+
+You can also disable OkHttpClient load-balancing via properties, by setting the value of `okhttp.loadbalancer.enabled` to `false`.
+
+== Retrofit Integration
+
+We provide Spring Boot and Spring Cloud LoadBalancer integration for https://square.github.io/okhttp/[Retrofit], which is a declarative HTTP client from Square.
+
+To enable and instantiate Retrofit clients, use the `@EnableRetrofitClients` annotation over a Spring `@Configuration` class:
+
+[source,java]
+----
+@EnableRetrofitClients(clients = TestClient.class, defaultConfiguration = LoggingRetrofitConfig.class)
+@Configuration
+class AppConfiguration{
+
+}
+----
+
+It scans for interfaces that declare they are clients (through `@RetrofitClient`). You can further control the scope of the scan by specifying packages or client names in the annotation parameters. You can also use the `defaultConfiguration` parameter to specify the default config class for all your Retrofit clients.
+
+You can create load-balanced Retrofit client beans by annotating a Retrofit interface with `@RetrofitClient`.
+
+The next two listings show examples. The first one uses an `OkHttpClient`-specific `Call` interface in method signatures. You can use the second one with a `WebClient`-backed implementation.
+
+[source,java]
+----
+@RetrofitClient("serviceId")
+interface HelloClient {
+	@GET("/")
+	Call<String> hello();
+}
+----
+
+[source,java]
+----
+@RetrofitClient("serviceId")
+interface HelloClient {
+	@GET("/")
+	Mono<String> hello();
+}
+----
+
+`@RetrofitClient` takes a `value` (alias `name`) argument, that also indicates the `serviceId` that should be used during load-balancing.
+
+If you do not wish for the calls to be load-balanced, you should also use the `url` parameter, that allows you to set the full url, with host and port specified explicitly:
+
+[source,java]
+----
+@RetrofitClient(name = "localapp", url = "http://localhost:8080")
+	protected interface TestClient {
+
+		@GET("/hello")
+		Call<Hello> getHello();
+}
+----
+
+Apart from setting the URL parameter, the `@RetrofitClient` annotation lets you specify a `qualifier` and pass a custom `configuration` class that you can use to provide or override OkHttp `Interceptor` beans:
+
+[source,java]
+----
+@RetrofitClient(name = "localapp", configuration = CustomRetrofitConfig.class)
+	protected interface TestClient {
+
+		@GET("/hello")
+		Call<Hello> getHello();
+}
+
+class CustomRetrofitConfig {
+
+		@Bean
+		public Interceptor interceptor1() {
+			return chain -> {
+				Request request = chain.request().newBuilder().addHeader(MYHEADER1, "myheader1value").build();
+				return chain.proceed(request);
+			};
+		}
+}
+----
+
+TIP: The configurations passed by the `@RetrofitClient` and `@EnableRetrofitClients` annotations behave similarly to the ones passed via `@LoadBalancerClient` and `@LoadBalancerClients` annotations. They are loaded into separate child contexts and should not be annotated with `@Configuration`.
+
+=== Load-balanced Retrofit Clients
+
+To use Spring Cloud LoadBalancer for instance selection and instance data retrieval, make sure you instantiate either a `@LoadBalanced OkHttpClient.Builder` (for a blocking implementation) or a `@LoadBalanced Webclient.Builder` (for a reactive implementation) bean in a `@Configuration`-annotated class in your application:
+
+[source,java]
+----
+@Configuration
+@EnableRetrofitClients
+class OkHttpClientConfig {
+
+@Bean
+@LoadBalanced
+public OkHttpClient.Builder okHttpClientBuilder() {
+    return new OkHttpClient.Builder();
+    }
+}
+----
+
+[source,java]
+----
+@Configuration
+@EnableRetrofitClients
+class OkHttpClientConfig {
+
+@Bean
+@LoadBalanced
+public WebClient.Builder okHttpClientBuilder() {
+    return WebClient.builder();
+    }
+}
+----
+
+They are used under the hood to run load-balanced HTTP requests.
+
+
+=== Retrofit Reactor support
+
+When `ReactorCallAdapterFactory` is on the classpath (provided by `retrofit2-reactor-adapter` dependency), we also instantiate a bean of this type, by using available `Scheduler` (if present). You can disable this functionality in properties by setting the value of `retrofit.reactor.enabled` to `false`.

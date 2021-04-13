@@ -47,6 +47,7 @@
 		<module>spring-cloud-square-retrofit-core</module>
 		<module>spring-cloud-square-retrofit</module>
 		<module>spring-cloud-square-retrofit-webclient</module>
+		<module>docs</module>
 	</modules>
 	<profiles>
 		<profile>
