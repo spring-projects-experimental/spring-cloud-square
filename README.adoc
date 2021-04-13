@@ -24,7 +24,7 @@ First, add the `spring-cloud-square-okhttp` dependency to your project:
 <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-square-okhttp</artifactId>
-        <version>0.4.0-MILESTONE</version>
+        <version>0.4.0-M1</version>
 </dependency>
 ----
 
@@ -61,12 +61,12 @@ First, add the `spring-cloud-square-retrofit`  and `spring-cloud-square-okhttp` 
     <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-square-retrofit</artifactId>
-        <version>0.4.0-MILESTONE</version>
+        <version>0.4.0-M1</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-square-okhttp</artifactId>
-        <version>0.4.0-MILESTONE</version>
+        <version>0.4.0-M1</version>
     </dependency>
 </dependencies>
 ----
@@ -126,7 +126,7 @@ First, add the `spring-cloud-square-retrofit` and `spring-boot-starter-webflux` 
     <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-square-retrofit</artifactId>
-        <version>0.4.0-MILESTONE</version>
+        <version>0.4.0-M1</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>
