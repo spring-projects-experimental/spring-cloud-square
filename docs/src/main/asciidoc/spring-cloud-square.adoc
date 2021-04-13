@@ -14,7 +14,7 @@ Spring Cloud Square provides Spring Cloud LoadBalancer integration for https://s
 
 == OkHttpClient Spring Cloud LoadBalancer Integration
 
-An interceptor is added to the `OkHttpClient` created by autoconfiguration to resolve the scheme, host and port from Spring Cloud LoadBalancer and rewrite the url.
+An interceptor is added to the `OkHttpClient` created by auto-configuration to resolve the scheme, host, and port from Spring Cloud LoadBalancer and rewrite the URL.
 
 You can access this functionality by annotating `OkHttpClient.Builder` beans with `@LoadBalanced`:
 
@@ -47,7 +47,7 @@ You can also disable OkHttpClient load-balancing via properties, by setting the 
 
 == Retrofit Integration
 
-We provide Spring Boot and Spring Cloud LoadBalancer integration for https://square.github.io/okhttp/[Retrofit], which is a declarative HTTP client.
+We provide Spring Boot and Spring Cloud LoadBalancer integration for https://square.github.io/okhttp/[Retrofit], which is a declarative HTTP client from Square.
 
 To enable and instantiate Retrofit clients, use the `@EnableRetrofitClients` annotation over a Spring `@Configuration` class:
 

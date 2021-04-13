@@ -10,7 +10,7 @@ include::quickstart.adoc[leveloffset=+1]
 
 This module supplies integration with Square's [`OkHttpClient`](https://square.github.io/okhttp/) and  [Spring Cloud LoadBalancer](https://github.com/spring-cloud/spring-cloud-commons/spring-cloud-loadbalancer).
 
-An application interceptor is added to the `OkHttpClient` created by autoconfiguration which resolves the scheme, host and port from Spring Cloud LoadBalancer and rewrites the url.
+An application interceptor is added to the `OkHttpClient` created by auto-configuration which resolves the scheme, host, and port from Spring Cloud LoadBalancer and rewrites the URL.
 
 By supporting `OkHttpClient`, it enables Square's [Retrofit](https://square.github.io/retrofit/) to use Spring Cloud LoadBalancer as well.
 
