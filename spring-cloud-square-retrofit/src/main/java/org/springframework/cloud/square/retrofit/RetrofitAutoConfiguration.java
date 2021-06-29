@@ -17,7 +17,7 @@
 package org.springframework.cloud.square.retrofit;
 
 import java.util.stream.Collectors;
-import org.slf4j.LoggerFactory;
+
 import retrofit2.Retrofit;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -36,13 +36,6 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnClass(Retrofit.class)
 @ConditionalOnBean(RetrofitConfiguration.Marker.class)
 public class RetrofitAutoConfiguration {
-
-	// @Autowired(required = false)
-	// private List<RetrofitClientSpecification> configurations = new ArrayList<>();
-
-	public RetrofitAutoConfiguration() {
-		LoggerFactory.getLogger(getClass()).info("loading RetrofitAutoConfiguration");
-	}
 
 	@Bean
 	public HasFeatures retrofitFeature() {
