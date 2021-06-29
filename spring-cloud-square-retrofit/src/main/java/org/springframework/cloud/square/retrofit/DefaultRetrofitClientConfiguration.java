@@ -126,10 +126,6 @@ public class DefaultRetrofitClientConfiguration {
 	@ConditionalOnProperty(value = "retrofit.reactor.enabled", matchIfMissing = true)
 	protected static class RetrofitReactorConfiguration {
 
-		//
-		// @Autowired(required = false)
-		// private Scheduler scheduler;
-
 		@Bean
 		@ConditionalOnMissingBean(CallAdapter.Factory.class)
 		public ReactorCallAdapterFactory reactorCallAdapterFactory(ObjectProvider<Scheduler> provider) {
