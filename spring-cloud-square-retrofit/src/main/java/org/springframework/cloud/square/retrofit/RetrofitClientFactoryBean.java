@@ -19,6 +19,8 @@ package org.springframework.cloud.square.retrofit;
 import java.util.Map;
 
 import okhttp3.OkHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import retrofit2.Retrofit;
 
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -29,6 +31,8 @@ import org.springframework.cloud.square.retrofit.core.RetrofitContext;
  * @author Spencer Gibb
  */
 public class RetrofitClientFactoryBean extends AbstractRetrofitClientFactoryBean {
+
+	private static final Logger logger = LoggerFactory.getLogger(RetrofitClientFactoryBean.class);
 
 	/***********************************
 	 * WARNING! Nothing in this class should be @Autowired. It causes NPEs because of some
@@ -51,7 +55,7 @@ public class RetrofitClientFactoryBean extends AbstractRetrofitClientFactoryBean
 		for (Map.Entry<String, OkHttpClient.Builder> entry : instances.entrySet()) {
 			String beanName = entry.getKey();
 			OkHttpClient.Builder clientBuilder = entry.getValue();
-
+			logger.info("trying to find LoadBalanced on " + beanName + '.');
 			if (applicationContext.findAnnotationOnBean(beanName, LoadBalanced.class) != null) {
 				builder.client(clientBuilder.build());
 				Retrofit retrofit = buildAndSave(context, builder);

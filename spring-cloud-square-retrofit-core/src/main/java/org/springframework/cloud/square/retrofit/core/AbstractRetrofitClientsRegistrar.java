@@ -66,9 +66,6 @@ public abstract class AbstractRetrofitClientsRegistrar
 
 	private ClassLoader classLoader;
 
-	public AbstractRetrofitClientsRegistrar() {
-	}
-
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
 		this.resourceLoader = resourceLoader;

@@ -113,7 +113,7 @@
 		</profile>
 	</profiles>
 
-	<build>
+	<!--<build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -133,6 +133,6 @@
 			</plugin>
 		</plugins>
 	</reporting>
-
+-->
 
 </project>

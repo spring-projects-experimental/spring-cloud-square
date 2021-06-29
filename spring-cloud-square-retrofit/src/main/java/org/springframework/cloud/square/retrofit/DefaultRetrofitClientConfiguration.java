@@ -16,19 +16,15 @@
 
 package org.springframework.cloud.square.retrofit;
 
-import java.util.Collections;
-import java.util.List;
-
 import com.jakewharton.retrofit2.adapter.reactor.ReactorCallAdapterFactory;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import reactor.core.scheduler.Scheduler;
-import retrofit2.CallAdapter;
-import retrofit2.Retrofit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -41,16 +37,23 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.format.support.DefaultFormattingConversionService;
+import reactor.core.scheduler.Scheduler;
+import retrofit2.CallAdapter;
+import retrofit2.Retrofit;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Dave Syer
  * @author Olga Maciaszek-Sharma
+ * @author Josh Long
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class DefaultRetrofitClientConfiguration {
 
-	@Autowired
-	private ObjectFactory<HttpMessageConverters> messageConverters;
+	private final static Logger LOGGER = LoggerFactory.getLogger(DefaultRetrofitClientConfiguration.class);
 
 	@Bean
 	@Scope("prototype")
@@ -67,50 +70,83 @@ public class DefaultRetrofitClientConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean(ConverterFactory.class)
-	public SpringConverterFactory springConverterFactory(ConversionService conversionService) {
+	public SpringConverterFactory springConverterFactory(ObjectFactory<HttpMessageConverters> messageConverters,
+														 ConversionService conversionService) {
 		return new SpringConverterFactory(messageConverters, conversionService);
 	}
 
-	@Configuration
-	protected static class DefaultOkHttpConfiguration {
+	@Configuration(proxyBeanMethods = false)
+	public static class DefaultOkHttpConfiguration {
 
-		@Autowired(required = false)
-		private List<OkHttpClient.Builder> httpClientBuilders = Collections.emptyList();
+		//
+		// @Autowired(required = false)
+		// private List<OkHttpClient.Builder> httpClientBuilders =
+		// Collections.emptyList();
 
 		// TODO move to abstract class in core module?
 		@Bean
-		public InitializingBean okHttpClientBuilderInitializer(final List<OkHttpClientBuilderCustomizer> customizers) {
-			return () -> {
-				for (OkHttpClient.Builder builder : DefaultOkHttpConfiguration.this.httpClientBuilders) {
-					for (OkHttpClientBuilderCustomizer customizer : customizers) {
-						customizer.accept(builder);
-					}
-				}
-			};
+		public RetrofitClientBuilderInitializer okHttpClientBuilderInitializer(
+			ObjectProvider<OkHttpClient.Builder> provider, List<OkHttpClientBuilderCustomizer> customizers) {
+			List<OkHttpClient.Builder> builders;
+			if (provider.iterator().hasNext()) {
+				builders = provider.stream().collect(Collectors.toList());
+				LOGGER.info("there are builders: " + builders.size() + '.');
+			}
+			else {
+				builders = new ArrayList<>();
+			}
+			return new RetrofitClientBuilderInitializer(customizers, builders);
 		}
 
 		@Bean
 		public OkHttpClientBuilderCustomizer okHttpClientBuilderCustomizer(List<Interceptor> interceptors) {
 			// Avoid adding interceptors added via OkHttpLoadBalancerAutoConfiguration
 			// twice.
+			LOGGER.info("going to customize the interceptors " + interceptors.size() + '.');
 			return builder -> interceptors.stream().filter(interceptor -> !builder.interceptors().contains(interceptor))
-					.forEach(builder::addInterceptor);
+				.forEach(builder::addInterceptor);
+		}
+
+		public static class RetrofitClientBuilderInitializer implements InitializingBean {
+
+			private final List<OkHttpClientBuilderCustomizer> customizers;
+
+			private final List<OkHttpClient.Builder> httpClientBuilders;
+
+			public RetrofitClientBuilderInitializer(List<OkHttpClientBuilderCustomizer> customizers,
+													List<OkHttpClient.Builder> httpClientBuilders) {
+				this.customizers = customizers;
+				this.httpClientBuilders = httpClientBuilders;
+			}
+
+			@Override
+			public void afterPropertiesSet() throws Exception {
+				LOGGER.info("RetrofitClientBuilderInitializer#afterPropertiesSet()");
+				for (OkHttpClient.Builder builder : this.httpClientBuilders) {
+					for (OkHttpClientBuilderCustomizer customizer : customizers) {
+						customizer.accept(builder);
+					}
+				}
+			}
+
 		}
 
 	}
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(ReactorCallAdapterFactory.class)
 	@ConditionalOnProperty(value = "retrofit.reactor.enabled", matchIfMissing = true)
 	protected static class RetrofitReactorConfiguration {
 
-		@Autowired(required = false)
-		private Scheduler scheduler;
+		//
+		// @Autowired(required = false)
+		// private Scheduler scheduler;
 
 		@Bean
 		@ConditionalOnMissingBean(CallAdapter.Factory.class)
-		public ReactorCallAdapterFactory reactorCallAdapterFactory() {
-			if (this.scheduler != null) {
+		public ReactorCallAdapterFactory reactorCallAdapterFactory(ObjectProvider<Scheduler> provider) {
+			Scheduler scheduler = provider.getIfAvailable();
+			if (scheduler != null) {
 				return ReactorCallAdapterFactory.createWithScheduler(scheduler);
 			}
 			return ReactorCallAdapterFactory.create();

@@ -16,12 +16,11 @@
 
 package org.springframework.cloud.square.retrofit;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.stream.Collectors;
+import org.slf4j.LoggerFactory;
 import retrofit2.Retrofit;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.client.actuator.HasFeatures;
@@ -33,13 +32,17 @@ import org.springframework.context.annotation.Configuration;
 /**
  * @author Spencer Gibb
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(Retrofit.class)
 @ConditionalOnBean(RetrofitConfiguration.Marker.class)
 public class RetrofitAutoConfiguration {
 
-	@Autowired(required = false)
-	private List<RetrofitClientSpecification> configurations = new ArrayList<>();
+	// @Autowired(required = false)
+	// private List<RetrofitClientSpecification> configurations = new ArrayList<>();
+
+	public RetrofitAutoConfiguration() {
+		LoggerFactory.getLogger(getClass()).info("loading RetrofitAutoConfiguration");
+	}
 
 	@Bean
 	public HasFeatures retrofitFeature() {
@@ -47,9 +50,9 @@ public class RetrofitAutoConfiguration {
 	}
 
 	@Bean
-	public RetrofitContext retrofitContext() {
+	public RetrofitContext retrofitContext(ObjectProvider<RetrofitClientSpecification> clientSpecifications) {
 		RetrofitContext context = new RetrofitContext(DefaultRetrofitClientConfiguration.class);
-		context.setConfigurations(this.configurations);
+		context.setConfigurations(clientSpecifications.stream().collect(Collectors.toList()));
 		return context;
 	}
 

@@ -24,6 +24,7 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.LoggerFactory;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 
@@ -54,6 +55,8 @@ public class SpringConverterFactory extends Converter.Factory {
 	@SuppressWarnings("unchecked")
 	@Override
 	public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
+		LoggerFactory.getLogger(getClass()).info(
+				"looking for a response body converter for " + type.getTypeName() + " with annotations " + annotations);
 		if (type instanceof Class || type instanceof ParameterizedType) {
 			// MediaType contentType = getContentType(responseWrapper);
 			MediaType contentType = MediaType.APPLICATION_JSON; // TODO: determine
