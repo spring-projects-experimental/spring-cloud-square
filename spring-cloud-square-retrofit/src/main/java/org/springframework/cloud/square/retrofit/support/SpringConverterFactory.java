@@ -16,24 +16,22 @@
 
 package org.springframework.cloud.square.retrofit.support;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.slf4j.LoggerFactory;
-import retrofit2.Converter;
-import retrofit2.Retrofit;
-
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.GenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import retrofit2.Converter;
+import retrofit2.Retrofit;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * @author Spencer Gibb
@@ -47,20 +45,25 @@ public class SpringConverterFactory extends Converter.Factory {
 	private ObjectFactory<HttpMessageConverters> messageConverters;
 
 	public SpringConverterFactory(ObjectFactory<HttpMessageConverters> messageConverters,
-			ConversionService conversionService) {
+								  ConversionService conversionService) {
 		this.messageConverters = messageConverters;
 		this.conversionService = conversionService;
 	}
 
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public Converter<ResponseBody, ?> responseBodyConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
-		LoggerFactory.getLogger(getClass()).info(
-				"looking for a response body converter for " + type.getTypeName() + " with annotations " + annotations);
+		if (log.isDebugEnabled()) {
+			log.debug("looking for a response body converter for " + type.getTypeName() + " with " + annotations.length + "annotations ");
+			for (Annotation a : annotations) {
+				log.info(" annotation:" + a.annotationType().toString());
+			}
+		}
 		if (type instanceof Class || type instanceof ParameterizedType) {
 			// MediaType contentType = getContentType(responseWrapper);
 			MediaType contentType = MediaType.APPLICATION_JSON; // TODO: determine
-																// dynamically?
+			// dynamically?
 			Class<?> responseClass = (type instanceof Class) ? (Class<?>) type : null;
 
 			for (HttpMessageConverter<?> messageConverter : this.messageConverters.getObject().getConverters()) {
@@ -69,7 +72,7 @@ public class SpringConverterFactory extends Converter.Factory {
 					if (genericMessageConverter.canRead(type, null, contentType)) {
 						if (log.isDebugEnabled()) {
 							log.debug("Reading [" + type + "] as \"" + contentType + "\" using [" + messageConverter
-									+ "]");
+								+ "]");
 						}
 						return new SpringResponseConverter(genericMessageConverter, type);
 					}
@@ -78,7 +81,7 @@ public class SpringConverterFactory extends Converter.Factory {
 					if (messageConverter.canRead(responseClass, contentType)) {
 						if (log.isDebugEnabled()) {
 							log.debug("Reading [" + responseClass.getName() + "] as \"" + contentType + "\" using ["
-									+ messageConverter + "]");
+								+ messageConverter + "]");
 						}
 						return new SpringResponseConverter(messageConverter, responseClass);
 					}
@@ -90,9 +93,9 @@ public class SpringConverterFactory extends Converter.Factory {
 
 	@Override
 	public Converter<?, RequestBody> requestBodyConverter(Type type, Annotation[] parameterAnnotations,
-			Annotation[] methodAnnotations, Retrofit retrofit) {
+														  Annotation[] methodAnnotations, Retrofit retrofit) {
 		MediaType requestContentType = MediaType.APPLICATION_JSON; // TODO: determine
-																	// dynamically?
+		// dynamically?
 
 		if (type instanceof Class) {
 			Class<?> requestType = (Class<?>) type;
@@ -111,6 +114,7 @@ public class SpringConverterFactory extends Converter.Factory {
 	public Converter<?, String> stringConverter(Type type, Annotation[] annotations, Retrofit retrofit) {
 		if (type instanceof Class) {
 			Class<?> aClass = (Class<?>) type;
+			if (log.isDebugEnabled()) log.debug("string conversion for "+ aClass.getName());
 			if (this.conversionService.canConvert(aClass, String.class)) {
 				return (Converter<Object, String>) value -> this.conversionService.convert(value, String.class);
 			}

@@ -16,10 +16,12 @@
 
 package org.springframework.cloud.square.retrofit.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cloud.context.named.NamedContextFactory;
+
 import java.util.Arrays;
 import java.util.Objects;
-
-import org.springframework.cloud.context.named.NamedContextFactory;
 
 /**
  * @author Dave Syer
@@ -30,12 +32,15 @@ public class RetrofitClientSpecification implements NamedContextFactory.Specific
 
 	private Class<?>[] configuration;
 
+	private final Logger logger = LoggerFactory.getLogger(getClass());
+
 	public RetrofitClientSpecification(String name, Class<?>[] configuration) {
 		this.name = name;
 		this.configuration = configuration;
-	}
-
-	public RetrofitClientSpecification() {
+		logger.info("name=" + name  +", configurations? " + configuration.length);
+		for (Class<?> c : configuration) {
+			logger.info("  configuration: " + c.toString());
+		}
 	}
 
 	public String getName() {
@@ -68,7 +73,7 @@ public class RetrofitClientSpecification implements NamedContextFactory.Specific
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name, configuration);
+		return Objects.hash(name, Arrays.hashCode(configuration));
 	}
 
 	@Override
