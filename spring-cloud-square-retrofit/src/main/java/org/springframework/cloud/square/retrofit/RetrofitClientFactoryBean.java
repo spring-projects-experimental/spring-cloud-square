@@ -51,7 +51,6 @@ public class RetrofitClientFactoryBean extends AbstractRetrofitClientFactoryBean
 		for (Map.Entry<String, OkHttpClient.Builder> entry : instances.entrySet()) {
 			String beanName = entry.getKey();
 			OkHttpClient.Builder clientBuilder = entry.getValue();
-
 			if (applicationContext.findAnnotationOnBean(beanName, LoadBalanced.class) != null) {
 				builder.client(clientBuilder.build());
 				Retrofit retrofit = buildAndSave(context, builder);

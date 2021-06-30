@@ -20,9 +20,10 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring-cloud-commons.version>3.0.3-SNAPSHOT</spring-cloud-commons.version>
+		<spring-cloud-commons.version>3.0.3-SNAPSHOT
+		</spring-cloud-commons.version>
 	</properties>
-	
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>

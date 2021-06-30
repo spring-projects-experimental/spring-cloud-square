@@ -30,7 +30,7 @@ public class RetrofitConfiguration {
 		return new Marker();
 	}
 
-	class Marker {
+	public static class Marker {
 
 	}
 
