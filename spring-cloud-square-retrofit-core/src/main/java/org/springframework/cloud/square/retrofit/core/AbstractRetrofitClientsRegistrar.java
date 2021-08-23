@@ -17,7 +17,6 @@
 package org.springframework.cloud.square.retrofit.core;
 
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
