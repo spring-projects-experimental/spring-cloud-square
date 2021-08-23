@@ -254,26 +254,13 @@ public abstract class AbstractRetrofitClientsRegistrar
 
 			@Override
 			protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {
+				boolean isCandidate = false;
 				if (beanDefinition.getMetadata().isIndependent()) {
-					// TODO until SPR-11711 will be resolved
-					if (beanDefinition.getMetadata().isInterface()
-							&& beanDefinition.getMetadata().getInterfaceNames().length == 1
-							&& Annotation.class.getName().equals(beanDefinition.getMetadata().getInterfaceNames()[0])) {
-						try {
-							Class<?> target = ClassUtils.forName(beanDefinition.getMetadata().getClassName(),
-									AbstractRetrofitClientsRegistrar.this.classLoader);
-							return !target.isAnnotation();
-						}
-						catch (Exception ex) {
-							this.logger.error(
-									"Could not load target class: " + beanDefinition.getMetadata().getClassName(), ex);
-
-						}
+					if (!beanDefinition.getMetadata().isAnnotation()) {
+						isCandidate = true;
 					}
-					return true;
 				}
-				return false;
-
+				return isCandidate;
 			}
 		};
 	}
