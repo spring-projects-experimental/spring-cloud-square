@@ -149,7 +149,7 @@ class OkHttpClientConfig {
 
 @Bean
 @LoadBalanced
-public WebClient.Builder okHttpClientBuilder() {
+public WebClient.Builder webClientBuilder() {
     return WebClient.builder();
     }
 }
