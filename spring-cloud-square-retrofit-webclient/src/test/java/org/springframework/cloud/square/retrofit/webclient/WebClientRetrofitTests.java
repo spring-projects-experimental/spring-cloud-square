@@ -16,13 +16,18 @@
 
 package org.springframework.cloud.square.retrofit.webclient;
 
+import java.util.Objects;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
@@ -34,6 +39,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.SocketUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -116,6 +122,12 @@ public class WebClientRetrofitTests {
 		assertThat(hello).isEqualTo(HELLO);
 	}
 
+	@Test
+	void webClientWithPayload() {
+		StepVerifier.create(testClient.withPayload("Hello World"))
+				.assertNext(response -> assertThat(response.statusCode().is2xxSuccessful()).isTrue()).verifyComplete();
+	}
+
 	private TestClient testClient() {
 		return testClient;
 		/*
@@ -153,6 +165,9 @@ public class WebClientRetrofitTests {
 		@GET("/hellos")
 		Flux<String> getHellosFlux();
 
+		@POST("/hello")
+		Mono<ClientResponse> withPayload(@Body String payload);
+
 	}
 
 	@SpringBootConfiguration
@@ -169,6 +184,12 @@ public class WebClientRetrofitTests {
 		@RequestMapping(method = RequestMethod.GET, path = "/hellos")
 		public Flux<String> getHellos() {
 			return Flux.just(HELLO, "hi");
+		}
+
+		@RequestMapping(method = RequestMethod.POST, path = "/hello")
+		public Mono<Void> withPayload(@RequestBody(required = false) String payload) {
+			Objects.requireNonNull(payload, "payload can not be null");
+			return Mono.empty();
 		}
 
 	}
