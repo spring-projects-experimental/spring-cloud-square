@@ -157,6 +157,8 @@ public WebClient.Builder webClientBuilder() {
 
 They are used under the hood to run load-balanced HTTP requests.
 
+NOTE: You can create various instances of `WebClient.Builder` with different setup. If a `@LoadBalanced WebClient.Builder` bean is found with name matching the pattern `[retrofit-context-name]WebClientBuilder`, it will be picked for the Retrofit context in question, otherwise the first found `@LoadBalaced WebClient.Builder` bean will be picked.
+
 
 === Retrofit Reactor support
 
