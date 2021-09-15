@@ -16,13 +16,22 @@
 
 package org.springframework.cloud.square.retrofit.webclient;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.RequestBody;
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.Okio;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import retrofit2.Call;
@@ -35,6 +44,8 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
 public class WebClientCallAdapterFactory extends CallAdapter.Factory {
+
+	private static final Log LOG = LogFactory.getLog(WebClientCallAdapterFactory.class);
 
 	public WebClientCallAdapterFactory() {
 	}
@@ -125,11 +136,28 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
 						httpHeaders.put(entry.getKey(), entry.getValue());
 					}
 				});
-		if (request.body() != null) {
-			// spec.body()
-			// FIXME: body
+		RequestBody requestBody = request.body();
+		if (requestBody != null) {
+			processRequestBody(request, spec, requestBody);
 		}
 		return spec;
+	}
+
+	private void processRequestBody(Request request, WebClient.RequestBodySpec spec, RequestBody requestBody) {
+		BufferedSink bufferedSink = Okio.buffer(Okio.sink(new ByteArrayOutputStream()));
+		try {
+			requestBody.writeTo(bufferedSink);
+		}
+		catch (IOException e) {
+			LOG.error("Could not process request body for request: " + request, e);
+		}
+		Buffer buffer = bufferedSink.buffer();
+		byte[] content = buffer.readByteArray();
+		spec.bodyValue(content);
+		MediaType requestContentType = requestBody.contentType();
+		if (requestContentType != null) {
+			spec.contentType(org.springframework.http.MediaType.parseMediaType(requestContentType.toString()));
+		}
 	}
 
 }
