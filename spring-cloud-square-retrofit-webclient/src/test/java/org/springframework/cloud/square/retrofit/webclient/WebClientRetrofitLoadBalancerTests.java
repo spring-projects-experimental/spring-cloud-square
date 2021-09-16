@@ -31,6 +31,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
+import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.ServiceInstanceListSuppliers;
 import org.springframework.cloud.square.retrofit.core.RetrofitClient;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 /**
@@ -62,6 +64,9 @@ class WebClientRetrofitLoadBalancerTests {
 	private TestClient testClient;
 
 	@Autowired
+	TestClientWithCustomWebClientBuilder testClientWithCustomWebClientBuilder;
+
+	@Autowired
 	private RetrofitContext retrofitContext;
 
 	@Test
@@ -79,6 +84,12 @@ class WebClientRetrofitLoadBalancerTests {
 		assertThat(response).isEqualTo(new Hello(HELLO_WORLD_1));
 	}
 
+	@Test
+	void testCustomWebClientBuilderPickeByRetrofitName() {
+		assertThatExceptionOfType(UnsupportedOperationException.class)
+				.isThrownBy(() -> testClientWithCustomWebClientBuilder.getHello().block());
+	}
+
 	@RetrofitClient("localapp")
 	protected interface TestClient {
 
@@ -87,10 +98,19 @@ class WebClientRetrofitLoadBalancerTests {
 
 	}
 
+	@RetrofitClient("localapp2")
+	protected interface TestClientWithCustomWebClientBuilder {
+
+		@GET("/hello")
+		Mono<Hello> getHello();
+
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@EnableRetrofitClients(clients = TestClient.class)
-	@LoadBalancerClient(name = "localapp", configuration = TestAppConfig.class)
+	@EnableRetrofitClients(clients = { TestClient.class, TestClientWithCustomWebClientBuilder.class })
+	@LoadBalancerClients({ @LoadBalancerClient(name = "localapp", configuration = TestAppConfig.class),
+			@LoadBalancerClient(name = "localapp2", configuration = TestAppConfig.class) })
 	@SuppressWarnings("unused")
 	@RestController
 	protected static class Application {
@@ -104,6 +124,14 @@ class WebClientRetrofitLoadBalancerTests {
 		@LoadBalanced
 		public WebClient.Builder builder() {
 			return WebClient.builder();
+		}
+
+		@Bean
+		@LoadBalanced
+		public WebClient.Builder localapp2WebClientBuilder() {
+			return WebClient.builder().filter((request, next) -> {
+				throw new UnsupportedOperationException("Failing WebClient Instance");
+			});
 		}
 
 	}
