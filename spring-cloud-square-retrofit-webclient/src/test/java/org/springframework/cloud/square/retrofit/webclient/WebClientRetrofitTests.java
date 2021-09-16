@@ -36,10 +36,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.cloud.square.retrofit.core.RetrofitClient;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -187,8 +189,14 @@ public class WebClientRetrofitTests {
 		}
 
 		@RequestMapping(method = RequestMethod.POST, path = "/hello")
-		public Mono<Void> withPayload(@RequestBody(required = false) String payload) {
-			Objects.requireNonNull(payload, "payload can not be null");
+		public Mono<Void> withPayload(@RequestBody(required = false) String payload,
+			@RequestHeader(value = "Content-Type", required = false) MediaType contentType) {
+			Objects.requireNonNull(payload, "Payload can not be null");
+			Objects.requireNonNull(contentType, "Content type can not be null");
+			if (!payload.equals("Hello World") || !contentType.toString()
+				.equals("text/plain;charset=UTF-8")) {
+				throw new IllegalArgumentException("Body was not processed correctly!");
+			}
 			return Mono.empty();
 		}
 
