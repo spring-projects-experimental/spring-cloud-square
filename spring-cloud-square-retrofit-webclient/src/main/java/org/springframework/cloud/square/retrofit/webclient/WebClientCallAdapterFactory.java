@@ -16,7 +16,6 @@
 
 package org.springframework.cloud.square.retrofit.webclient;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
@@ -30,8 +29,11 @@ import okhttp3.RequestBody;
 import okio.Buffer;
 import okio.BufferedSink;
 import okio.Okio;
+import okio.Sink;
+import okio.Timeout;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import retrofit2.Call;
@@ -138,22 +140,44 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
 				});
 		RequestBody requestBody = request.body();
 		if (requestBody != null) {
-			processRequestBody(request, spec, requestBody);
+			processRequestBody(spec, requestBody);
 		}
 		return spec;
 	}
 
-	private void processRequestBody(Request request, WebClient.RequestBodySpec spec, RequestBody requestBody) {
-		BufferedSink bufferedSink = Okio.buffer(Okio.sink(new ByteArrayOutputStream()));
-		try {
-			requestBody.writeTo(bufferedSink);
-		}
-		catch (IOException e) {
-			LOG.error("Could not process request body for request: " + request, e);
-		}
-		Buffer buffer = bufferedSink.buffer();
-		byte[] content = buffer.readByteArray();
-		spec.bodyValue(content);
+	private void processRequestBody(WebClient.RequestBodySpec spec, RequestBody requestBody) {
+		Publisher<byte[]> requestBodyPublisher = Flux.create(sink -> {
+			try {
+				Sink fluxSink = new Sink() {
+					@Override
+					public void write(Buffer source, long byteCount) throws IOException {
+						sink.next(source.readByteArray(byteCount));
+					}
+
+					@Override
+					public void flush() {
+						sink.complete();
+					}
+
+					@Override
+					public Timeout timeout() {
+						return Timeout.NONE;
+					}
+
+					@Override
+					public void close() {
+						sink.complete();
+					}
+				};
+				BufferedSink bufferedSink = Okio.buffer(fluxSink);
+				requestBody.writeTo(bufferedSink);
+				bufferedSink.flush();
+			}
+			catch (IOException e) {
+				sink.error(e);
+			}
+		});
+		spec.body(requestBodyPublisher, byte[].class);
 		MediaType requestContentType = requestBody.contentType();
 		if (requestContentType != null) {
 			spec.contentType(org.springframework.http.MediaType.parseMediaType(requestContentType.toString()));
