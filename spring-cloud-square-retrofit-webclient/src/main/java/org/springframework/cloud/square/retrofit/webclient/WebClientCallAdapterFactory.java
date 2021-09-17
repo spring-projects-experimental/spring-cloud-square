@@ -43,6 +43,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
+/**
+ * {@link WebClient}-specific {@link CallAdapter.Factory} implementation.
+ *
+ * @author Spencer Gibb
+ * @author Olga Maciaszek-Sharma
+ */
 public class WebClientCallAdapterFactory extends CallAdapter.Factory {
 
 	public WebClientCallAdapterFactory() {

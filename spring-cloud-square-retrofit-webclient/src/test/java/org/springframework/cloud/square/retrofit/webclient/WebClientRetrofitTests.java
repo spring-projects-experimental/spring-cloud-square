@@ -190,11 +190,10 @@ public class WebClientRetrofitTests {
 
 		@RequestMapping(method = RequestMethod.POST, path = "/hello")
 		public Mono<Void> withPayload(@RequestBody(required = false) String payload,
-			@RequestHeader(value = "Content-Type", required = false) MediaType contentType) {
+				@RequestHeader(value = "Content-Type", required = false) MediaType contentType) {
 			Objects.requireNonNull(payload, "Payload can not be null");
 			Objects.requireNonNull(contentType, "Content type can not be null");
-			if (!payload.equals("Hello World") || !contentType.toString()
-				.equals("text/plain;charset=UTF-8")) {
+			if (!payload.equals("Hello World") || !contentType.toString().equals("text/plain;charset=UTF-8")) {
 				throw new IllegalArgumentException("Body was not processed correctly!");
 			}
 			return Mono.empty();

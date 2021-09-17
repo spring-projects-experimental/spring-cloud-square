@@ -81,7 +81,7 @@ public @interface EnableRetrofitClients {
 	/**
 	 * List of classes annotated with @RetrofitClient. If not empty, disables classpath
 	 * scanning.
-	 * @return
+	 * @return an array of {@link RetrofitClient}-annotated classes
 	 */
 	Class<?>[] clients() default {};
 

@@ -28,7 +28,10 @@ import org.springframework.cloud.square.retrofit.core.RetrofitContext;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
+ * {@link WebClient}-specific {@link AbstractRetrofitClientFactoryBean} implementation.
+ *
  * @author Spencer Gibb
+ * @author Olga Maciaszek-Sharma
  */
 public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFactoryBean {
 
