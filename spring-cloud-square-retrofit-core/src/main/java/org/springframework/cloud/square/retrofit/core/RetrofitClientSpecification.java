@@ -33,9 +33,7 @@ public class RetrofitClientSpecification implements NamedContextFactory.Specific
 	public RetrofitClientSpecification(String name, Class<?>[] configuration) {
 		this.name = name;
 		this.configuration = configuration;
-	}
 
-	public RetrofitClientSpecification() {
 	}
 
 	public String getName() {
@@ -68,7 +66,7 @@ public class RetrofitClientSpecification implements NamedContextFactory.Specific
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name, configuration);
+		return Objects.hash(name, Arrays.hashCode(configuration));
 	}
 
 	@Override

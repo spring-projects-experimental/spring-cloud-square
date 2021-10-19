@@ -22,6 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.cloud.square.retrofit.core.RetrofitClient;
 import org.springframework.context.annotation.Import;
 
 /**
@@ -78,9 +79,9 @@ public @interface EnableRetrofitClients {
 	Class<?>[] defaultConfiguration() default {};
 
 	/**
-	 * List of classes annotated with @RetrofitClient. If not empty, disables classpath
-	 * scanning.
-	 * @return
+	 * List of classes annotated with {@link RetrofitClient}. If not empty, disables
+	 * classpath scanning.
+	 * @return an array of {@link RetrofitClient}-annotated classes
 	 */
 	Class<?>[] clients() default {};
 

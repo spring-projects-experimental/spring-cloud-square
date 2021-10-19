@@ -6,11 +6,11 @@ include::intro.adoc[]
 NOTE: Spring Cloud is released under the non-restrictive Apache 2.0 license.
 If you want to contribute to this section of the documentation or if you find an error, you can find the source code and issue trackers for the project at {docslink}[github].
 
+Spring Cloud Square provides Spring Cloud LoadBalancer integration for https://square.github.io/okhttp/[OkHttpClient] and https://square.github.io/retrofit/[Retrofit], as well as a WebClient-backed Retrofit clients.
+
 == Quick Start
 
 include::quickstart.adoc[leveloffset=+1]
-
-Spring Cloud Square provides Spring Cloud LoadBalancer integration for https://square.github.io/okhttp/[OkHttpClient] and https://square.github.io/retrofit/[Retrofit], as well as a WebClient-backed Retrofit clients.
 
 == OkHttpClient Spring Cloud LoadBalancer Integration
 
@@ -149,13 +149,15 @@ class OkHttpClientConfig {
 
 @Bean
 @LoadBalanced
-public WebClient.Builder okHttpClientBuilder() {
+public WebClient.Builder webClientBuilder() {
     return WebClient.builder();
     }
 }
 ----
 
 They are used under the hood to run load-balanced HTTP requests.
+
+NOTE: You can create various instances of `WebClient.Builder` with different setup. If a `@LoadBalanced WebClient.Builder` bean is found with name matching the pattern `[retrofit-context-name]WebClientBuilder`, it will be picked for the Retrofit context in question, otherwise the first found `@LoadBalaced WebClient.Builder` bean will be picked.
 
 
 === Retrofit Reactor support

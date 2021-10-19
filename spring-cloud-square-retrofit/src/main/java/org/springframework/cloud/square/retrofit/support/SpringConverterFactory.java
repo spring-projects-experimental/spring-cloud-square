@@ -43,7 +43,7 @@ public class SpringConverterFactory extends Converter.Factory {
 
 	private final ConversionService conversionService;
 
-	private ObjectFactory<HttpMessageConverters> messageConverters;
+	private final ObjectFactory<HttpMessageConverters> messageConverters;
 
 	public SpringConverterFactory(ObjectFactory<HttpMessageConverters> messageConverters,
 			ConversionService conversionService) {
@@ -57,7 +57,7 @@ public class SpringConverterFactory extends Converter.Factory {
 		if (type instanceof Class || type instanceof ParameterizedType) {
 			// MediaType contentType = getContentType(responseWrapper);
 			MediaType contentType = MediaType.APPLICATION_JSON; // TODO: determine
-																// dynamically?
+			// dynamically?
 			Class<?> responseClass = (type instanceof Class) ? (Class<?>) type : null;
 
 			for (HttpMessageConverter<?> messageConverter : this.messageConverters.getObject().getConverters()) {
@@ -89,7 +89,7 @@ public class SpringConverterFactory extends Converter.Factory {
 	public Converter<?, RequestBody> requestBodyConverter(Type type, Annotation[] parameterAnnotations,
 			Annotation[] methodAnnotations, Retrofit retrofit) {
 		MediaType requestContentType = MediaType.APPLICATION_JSON; // TODO: determine
-																	// dynamically?
+		// dynamically?
 
 		if (type instanceof Class) {
 			Class<?> requestType = (Class<?>) type;

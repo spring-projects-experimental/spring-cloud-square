@@ -5,9 +5,10 @@ name: Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
+
 
 jobs:
   build:
@@ -16,7 +17,7 @@ jobs:
 
     strategy:
       matrix:
-        java: ["8", "15", "16"]
+        java: ["8", "11", "16"]
 
     steps:
       - uses: actions/checkout@v2

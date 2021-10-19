@@ -23,6 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.core.annotation.AliasFor;
+import org.springframework.stereotype.Indexed;
 
 /**
  * Annotation for interfaces declaring that a REST client with that interface should be
@@ -36,6 +37,7 @@ import org.springframework.core.annotation.AliasFor;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@Indexed
 public @interface RetrofitClient {
 
 	/**

@@ -16,13 +16,22 @@
 
 package org.springframework.cloud.square.retrofit.webclient;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MediaType;
 import okhttp3.Request;
+import okhttp3.RequestBody;
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.Okio;
+import okio.Sink;
+import okio.Timeout;
+import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import retrofit2.Call;
@@ -34,6 +43,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
+/**
+ * {@link WebClient}-specific {@link CallAdapter.Factory} implementation.
+ *
+ * @author Spencer Gibb
+ * @author Olga Maciaszek-Sharma
+ */
 public class WebClientCallAdapterFactory extends CallAdapter.Factory {
 
 	public WebClientCallAdapterFactory() {
@@ -125,11 +140,50 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
 						httpHeaders.put(entry.getKey(), entry.getValue());
 					}
 				});
-		if (request.body() != null) {
-			// spec.body()
-			// FIXME: body
+		RequestBody requestBody = request.body();
+		if (requestBody != null) {
+			processRequestBody(spec, requestBody);
 		}
 		return spec;
+	}
+
+	private void processRequestBody(WebClient.RequestBodySpec spec, RequestBody requestBody) {
+		Publisher<byte[]> requestBodyPublisher = Flux.create(sink -> {
+			try {
+				Sink fluxSink = new Sink() {
+					@Override
+					public void write(Buffer source, long byteCount) throws IOException {
+						sink.next(source.readByteArray(byteCount));
+					}
+
+					@Override
+					public void flush() {
+						sink.complete();
+					}
+
+					@Override
+					public Timeout timeout() {
+						return Timeout.NONE;
+					}
+
+					@Override
+					public void close() {
+						sink.complete();
+					}
+				};
+				BufferedSink bufferedSink = Okio.buffer(fluxSink);
+				requestBody.writeTo(bufferedSink);
+				bufferedSink.flush();
+			}
+			catch (IOException e) {
+				sink.error(e);
+			}
+		});
+		spec.body(requestBodyPublisher, byte[].class);
+		MediaType requestContentType = requestBody.contentType();
+		if (requestContentType != null) {
+			spec.contentType(org.springframework.http.MediaType.parseMediaType(requestContentType.toString()));
+		}
 	}
 
 }

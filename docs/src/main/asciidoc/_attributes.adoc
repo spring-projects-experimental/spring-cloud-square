@@ -12,5 +12,5 @@
 :docinfo: shared,private
 
 :sc-ext: java
-:project-full-name: Spring Cloud Commons
+:project-full-name: Spring Cloud Square
 :all: {asterisk}{asterisk}

@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.square.retrofit;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ import org.junit.jupiter.api.Test;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.HEAD;
 import retrofit2.http.Header;
@@ -91,6 +94,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testDynamicUrl() throws Exception {
 		Response<Hello> response = testClient.getHelloWithDynamicUrl(urlAsSpringProperty).execute();
+
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		Hello hello = response.body();
 		assertThat(hello).withFailMessage("hello was null").isNotNull();
@@ -100,6 +104,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testSimpleType() throws Exception {
 		Response<Hello> response = testClient.getHello().execute();
+
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		Hello hello = response.body();
 		assertThat(hello).withFailMessage("hello was null").isNotNull();
@@ -109,6 +114,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testSimpleTypeBody() throws Exception {
 		Response<Hello> response = testClient.postHello(new Hello("postHello")).execute();
+
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		Hello hello = response.body();
 		assertThat(hello).withFailMessage("hello was null").isNotNull();
@@ -118,6 +124,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testGenericType() throws Exception {
 		Response<List<Hello>> response = testClient.getHellos().execute();
+
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		List<Hello> hellos = response.body();
 		assertThat(hellos).isNotNull();
@@ -127,6 +134,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testRequestInterceptors() throws Exception {
 		Response<List<String>> response = testClient.getHelloHeaders().execute();
+
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		List<String> headers = response.body();
 		assertThat(headers).withFailMessage("headers was null").isNotNull();
@@ -137,6 +145,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testDynamicHeaders() throws Exception {
 		Response<String> response = testClient.getDynamicHeader(myDynamicHeader).execute();
+
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		String header = response.body();
 		assertThat(header).withFailMessage("headers was null").isNotNull();
@@ -146,6 +155,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testParams() throws Exception {
 		Response<List<String>> response = testClient.getParams("a", "1", "test").execute();
+
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		List<String> params = response.body();
 		assertThat(params).withFailMessage("params was null").isNotNull();
@@ -155,6 +165,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testNoContentResponse() throws Exception {
 		Response<Void> response = testClient.noContent().execute();
+
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		assertThat(response).withFailMessage("response was null").isNotNull();
 		assertThat(response.code()).withFailMessage("status code was wrong").isEqualTo(HttpStatus.NO_CONTENT.value());
@@ -163,6 +174,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testHeadResponse() throws Exception {
 		Response<Void> response = testClient.head().execute();
+
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		assertThat(response).withFailMessage("response was null").isNotNull();
 		assertThat(response.code()).withFailMessage("status code was wrong").isEqualTo(HttpStatus.OK.value());
@@ -172,6 +184,7 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	void testMoreComplexHeader() throws Exception {
 		String body = "{\"value\":\"OK\"}";
 		Response<String> response = testClient.moreComplexContentType(body).execute();
+
 		assertThat(response).withFailMessage("response was null").isNotNull();
 		assertThat(response.isSuccessful()).withFailMessage("response was unsuccessful " + response.code()).isTrue();
 		assertThat(response.body()).withFailMessage("response was incorrect").isEqualTo(body);
@@ -186,7 +199,15 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 	@Test
 	void testObjectAsQueryParam() throws Exception {
 		Response<String> response = testClient.getToString(new OtherArg("foo")).execute();
+
 		assertThat(response.body()).isEqualTo("foo");
+	}
+
+	@Test
+	void testPostWithParam() throws IOException {
+		Response<String> response = testClient.postParams("testValue").execute();
+
+		assertThat(response.body()).isEqualTo("testValue");
 	}
 
 	protected enum Arg {
@@ -242,6 +263,10 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 
 		@GET("/tostring2")
 		Call<String> getToString(@Query("arg") OtherArg arg);
+
+		@POST("/postParams")
+		@FormUrlEncoded
+		Call<String> postParams(@Field("param") String paramValue);
 
 	}
 
@@ -324,6 +349,11 @@ class RetrofitClientUrlTests extends DefinedPortTests {
 		@GetMapping("/tostring2")
 		String getToString(@RequestParam("arg") OtherArg arg) {
 			return arg.value;
+		}
+
+		@PostMapping("/postParams")
+		String postParams(@RequestParam("param") String paramValue) {
+			return paramValue;
 		}
 
 	}
