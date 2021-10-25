@@ -4,7 +4,7 @@ include::_attributes.adoc[]
 include::intro.adoc[]
 
 NOTE: Spring Cloud is released under the non-restrictive Apache 2.0 license.
-If you want to contribute to this section of the documentation or if you find an error, you can find the source code and issue trackers for the project at {docslink}[github].
+If you want to contribute to this section of the documentation or if you find an error, you can find the source code and issue trackers for the project at https://github.com/spring-cloud-incubator/spring-cloud-square[GitHub].
 
 Spring Cloud Square provides Spring Cloud LoadBalancer integration for https://square.github.io/okhttp/[OkHttpClient] and https://square.github.io/retrofit/[Retrofit], as well as a WebClient-backed Retrofit clients.
 
