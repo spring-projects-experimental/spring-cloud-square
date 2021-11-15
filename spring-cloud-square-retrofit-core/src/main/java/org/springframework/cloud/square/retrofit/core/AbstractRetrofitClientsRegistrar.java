@@ -36,10 +36,12 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.ClassMetadata;
@@ -56,14 +58,16 @@ import org.springframework.util.StringUtils;
  * @author Spencer Gibb
  */
 public abstract class AbstractRetrofitClientsRegistrar
-		implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, BeanClassLoaderAware {
+		implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, BeanClassLoaderAware, EnvironmentAware {
 
 	// patterned after Spring Integration IntegrationComponentScanRegistrar
-	// and RibbonClientsConfigurationRegistgrar
+	// and RibbonClientsConfigurationRegistrar
 
 	private ResourceLoader resourceLoader;
 
 	private ClassLoader classLoader;
+
+	private Environment environment;
 
 	@Override
 	public void setResourceLoader(ResourceLoader resourceLoader) {
@@ -79,6 +83,11 @@ public abstract class AbstractRetrofitClientsRegistrar
 	public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
 		registerDefaultConfiguration(metadata, registry);
 		registerRetrofitClients(metadata, registry);
+	}
+
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
 	}
 
 	private void registerDefaultConfiguration(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
@@ -165,8 +174,10 @@ public abstract class AbstractRetrofitClientsRegistrar
 
 		String alias = name + "RetrofitClient";
 		AbstractBeanDefinition beanDefinition = definition.getBeanDefinition();
-		beanDefinition.setPrimary(true);
-
+		boolean setPrimary = environment != null
+				? environment.getProperty("spring.cloud.square.retrofit.primary-retrofit-client", Boolean.class, true)
+				: true;
+		beanDefinition.setPrimary(setPrimary);
 		String qualifier = getQualifier(attributes);
 		if (StringUtils.hasText(qualifier)) {
 			alias = qualifier;

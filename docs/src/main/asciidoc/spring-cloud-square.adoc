@@ -123,6 +123,8 @@ class CustomRetrofitConfig {
 
 TIP: The configurations passed by the `@RetrofitClient` and `@EnableRetrofitClients` annotations behave similarly to the ones passed via `@LoadBalancerClient` and `@LoadBalancerClients` annotations. They are loaded into separate child contexts and should not be annotated with `@Configuration`.
 
+TIP: The `RetrofitClient` bean provided by Spring Cloud Square is set as `primary` by default. If you wish to provide a different `RetrofitClient` bean instead, you can change that behaviour by setting the value of `cloud.square.retrofit.primary-retrofit-client` property to `false`.
+
 === Load-balanced Retrofit Clients
 
 To use Spring Cloud LoadBalancer for instance selection and instance data retrieval, make sure you instantiate either a `@LoadBalanced OkHttpClient.Builder` (for a blocking implementation) or a `@LoadBalanced Webclient.Builder` (for a reactive implementation) bean in a `@Configuration`-annotated class in your application:
