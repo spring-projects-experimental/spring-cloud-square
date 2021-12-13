@@ -168,6 +168,6 @@ When `ReactorCallAdapterFactory` is on the classpath (provided by `retrofit2-rea
 
 === Spring Cloud Sleuth support
 
-We provide tracing support via Spring Cloud Sleuth integration. If you add `spring-cloud-starter-sleuth` to your project setup, tracing will be provided out of the box, either using the `WebClient` tracing integration provided Spring Cloud Sleuth or via `OkHttpClient` tracing integration provided by the `spring-cloud-square-okhttp` module.
+We provide tracing support by using Spring Cloud Sleuth integration. If you add `spring-cloud-starter-sleuth` to your project setup, tracing is provided either by the `WebClient` tracing integration (provided Spring Cloud Sleuth) or by the `OkHttpClient` tracing integration (provided by the `spring-cloud-square-okhttp module`).
 
 TIP: You can disable OkHttp tracing support by setting the value of ``"``okhttp.tracing.enabled` to `false`.
