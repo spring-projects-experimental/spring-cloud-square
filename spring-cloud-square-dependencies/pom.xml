@@ -15,12 +15,24 @@
 	<name>Spring Cloud Square Dependencies</name>
 	<description>Spring Cloud Square Dependencies</description>
 	<properties>
-		<okhttp.version>4.9.1</okhttp.version>
+		<okhttp.version>4.9.3</okhttp.version>
 		<retrofit.version>2.9.0</retrofit.version>
 		<retrofit-reactor.version>2.1.0</retrofit-reactor.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>okhttp</artifactId>
+				<version>${okhttp.version}</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>com.squareup.okhttp3</groupId>
+				<artifactId>logging-interceptor</artifactId>
+				<version>${okhttp.version}</version>
+				<scope>test</scope>
+			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-square-okhttp</artifactId>
@@ -45,6 +57,12 @@
 				<groupId>com.squareup.retrofit2</groupId>
 				<artifactId>retrofit</artifactId>
 				<version>${retrofit.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.squareup.okhttp3</groupId>
+						<artifactId>okhttp</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>com.squareup.retrofit2</groupId>
