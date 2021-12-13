@@ -47,6 +47,8 @@ import org.springframework.lang.Nullable;
  *
  * @author OpenZipkin Brave Authors
  * @author Olga Maciaszek-Sharma
+ * @see <a
+ * href=https://github.com/openzipkin/brave/blob/master/instrumentation/okhttp3/src/main/java/brave/okhttp3/TracingInterceptor.java>TracingInterceptor.java</a>
  */
 public class TracingOkHttpInterceptor implements Interceptor {
 
