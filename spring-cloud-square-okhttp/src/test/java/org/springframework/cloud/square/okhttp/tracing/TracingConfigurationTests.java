@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.cloud.square.okhttp.loadbalancer;
+package org.springframework.cloud.square.okhttp.tracing;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -45,42 +44,33 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-class OkHttpLoadBalancerInterceptorTests {
+/**
+ * @author Olga Maciaszek-Sharma
+ */
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "okhttp.tracing.enabled=false")
+public class TracingConfigurationTests {
 
-	// The serviceId that SC LoadBalancer will resolve to host:port
 	private static final String SERVICE_ID = "testapp";
 
-	// is configured with OkHttpLoadBalancerInterceptor
 	@Autowired
 	private OkHttpClient.Builder builder;
 
-	// Our retrofit defined client
 	@Autowired
 	private TestAppClient testAppClient;
 
 	@Test
-	void httpClientWorks() throws IOException {
-		Request request = new Request.Builder()
-				// here you use a service id, or virtual hostname
-				// rather than an actual host:port, SC LoadBalancer will
-				// resolve it
-				.url("http://" + SERVICE_ID + "/hello").build();
+	void shouldNotAddTracingHeadersWhenDisabled() throws IOException {
+		Request request = new Request.Builder().url("http://" + SERVICE_ID + "/hello").build();
 		Response response = builder.build().newCall(request).execute();
-		Hello hello = new ObjectMapper().readValue(response.body().byteStream(), Hello.class);
-		assertThat(hello.getValue()).withFailMessage("response was wrong", hello.getValue()).isEqualTo("hello okhttp");
-		assertThat(response.request().header("X-B3-TraceId")).withFailMessage("No traceId header.").isNotNull();
+		assertThat(response.request().header("X-B3-TraceId")).isNull();
 	}
 
 	@Test
-	void retrofitWorks() throws IOException {
+	void shouldNotAddTracingHeadersWithRetrofitWhenDisabled() throws IOException {
 		retrofit2.Response<Hello> response = testAppClient.hello().execute();
-		String hello = response.body().getValue();
-		assertThat(hello).withFailMessage("response was wrong").isEqualTo("hello okhttp");
-		assertThat(response.raw().request().header("X-B3-TraceId")).withFailMessage("No traceId header.").isNotNull();
+		assertThat(response.raw().request().header("X-B3-TraceId")).isNull();
 	}
 
-	// interface that retrofit will create an implementation for
 	interface TestAppClient {
 
 		@GET("/hello")
@@ -88,12 +78,10 @@ class OkHttpLoadBalancerInterceptorTests {
 
 	}
 
-	// our data object
 	protected static class Hello {
 
 		private String value;
 
-		// for serialization
 		Hello() {
 		}
 
@@ -110,9 +98,6 @@ class OkHttpLoadBalancerInterceptorTests {
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
 	@RestController
-	// since this is a test we're giving a very specific LoadBalancer configuration
-	// normally this would automatically come from a service discovery
-	// implementation like eureka from spring-cloud-netflix or spring-cloud-consul
 	@LoadBalancerClient(name = SERVICE_ID, configuration = TestAppConfig.class)
 	protected static class TestApp {
 
@@ -129,19 +114,13 @@ class OkHttpLoadBalancerInterceptorTests {
 
 		@Bean
 		public TestAppClient testAppClient(@LoadBalanced OkHttpClient.Builder builder) {
-			Retrofit retrofit = new Retrofit.Builder()
-					// here you use a service id, or virtual hostname
-					// rather than an actual host:port, SC LoadBalancer will
-					// resolve it
-					.baseUrl("http://testapp").client(builder.build())
+			Retrofit retrofit = new Retrofit.Builder().baseUrl("http://testapp").client(builder.build())
 					.addConverterFactory(JacksonConverterFactory.create()).build();
 			return retrofit.create(TestAppClient.class);
 		}
 
 	}
 
-	// SC LoadBalancer configuration that resolves SERVICE_ID to localhost and
-	// the resolved random port
 	protected static class TestAppConfig {
 
 		@LocalServerPort
