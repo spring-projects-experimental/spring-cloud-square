@@ -61,7 +61,8 @@ class RetrofitClientLoadBalancedInterceptorsTest extends DefinedPortTests {
 	@Autowired
 	private TestClient testClient;
 
-	// Issue: https://github.com/spring-cloud-incubator/spring-cloud-square/issues/18
+	// Issue:
+	// https://github.com/spring-projects-experimental/spring-cloud-square/issues/18
 	@Test
 	void testRequestInterceptors() throws Exception {
 		Response<List<String>> response = testClient.getHelloHeaders().execute();
