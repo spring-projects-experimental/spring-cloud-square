@@ -33,7 +33,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass(TraceContext.class)
 @ConditionalOnBean({ CurrentTraceContext.class, HttpClientHandler.class })
-@ConditionalOnProperty(value = "okhttp.tracing.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.cloud.square.okhttp.tracing.enabled", havingValue = "true",
+		matchIfMissing = true)
 public class OkHttpTracingConfiguration {
 
 	@Bean

@@ -1,7 +1,7 @@
 {
 	"properties": [
 		{
-			"name": "cloud.square.retrofit.primary-retrofit-client",
+			"name": "spring.cloud.square.retrofit.primary-retrofit-client",
 			"type": "java.lang.Boolean",
 			"description": "Indicates whether the RetrofitClient bean provided by Spring Cloud Square should be marked as primary.",
 			"defaultValue": true

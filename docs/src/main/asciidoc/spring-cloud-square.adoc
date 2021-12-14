@@ -43,7 +43,7 @@ You can also https://docs.spring.io/spring-cloud-commons/docs/current/reference/
 
  This integration supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].
 
-You can also disable OkHttpClient load-balancing via properties, by setting the value of `okhttp.loadbalancer.enabled` to `false`.
+You can also disable OkHttpClient load-balancing via properties, by setting the value of `spring.cloud.square.okhttp.loadbalancer.enabled` to `false`.
 
 == Retrofit Integration
 
@@ -123,7 +123,7 @@ class CustomRetrofitConfig {
 
 TIP: The configurations passed by the `@RetrofitClient` and `@EnableRetrofitClients` annotations behave similarly to the ones passed via `@LoadBalancerClient` and `@LoadBalancerClients` annotations. They are loaded into separate child contexts and should not be annotated with `@Configuration`.
 
-TIP: The `RetrofitClient` bean provided by Spring Cloud Square is set as `primary` by default. If you wish to provide a different `RetrofitClient` bean instead, you can change that behaviour by setting the value of `cloud.square.retrofit.primary-retrofit-client` property to `false`.
+TIP: The `RetrofitClient` bean provided by Spring Cloud Square is set as `primary` by default. If you wish to provide a different `RetrofitClient` bean instead, you can change that behaviour by setting the value of `spring.cloud.square.retrofit.primary-retrofit-client` property to `false`.
 
 === Load-balanced Retrofit Clients
 
@@ -164,10 +164,10 @@ NOTE: You can create various instances of `WebClient.Builder` with different set
 
 === Retrofit Reactor support
 
-When `ReactorCallAdapterFactory` is on the classpath (provided by `retrofit2-reactor-adapter` dependency), we also instantiate a bean of this type, by using available `Scheduler` (if present). You can disable this functionality in properties by setting the value of `retrofit.reactor.enabled` to `false`.
+When `ReactorCallAdapterFactory` is on the classpath (provided by `retrofit2-reactor-adapter` dependency), we also instantiate a bean of this type, by using available `Scheduler` (if present). You can disable this functionality in properties by setting the value of `spring.cloud.square.retrofit.reactor.enabled` to `false`.
 
 === Spring Cloud Sleuth support
 
 We provide tracing support by using Spring Cloud Sleuth integration. If you add `spring-cloud-starter-sleuth` to your project setup, tracing is provided either by the `WebClient` tracing integration (provided Spring Cloud Sleuth) or by the `OkHttpClient` tracing integration (provided by the `spring-cloud-square-okhttp module`).
 
-TIP: You can disable OkHttp tracing support by setting the value of ``"``okhttp.tracing.enabled` to `false`.
+TIP: You can disable OkHttp tracing support by setting the value of `spring.cloud.square.okhttp.tracing.enabled` to `false`.

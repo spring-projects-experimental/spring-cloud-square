@@ -1,0 +1,12 @@
+{
+	"groups": [
+	],
+	"properties": [
+		{
+			"name": "spring.cloud.square.retrofit.reactor.enabled",
+			"type": "java.lang.Boolean",
+			"description": "Allows disabling Retrofit-Reactor support.",
+			"defaultValue": "true"
+		}
+	]
+}

@@ -45,10 +45,9 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
  */
-@SpringBootTest(
-		properties = { "spring.application.name=retrofitnoannotationtest",
-				"logging.level.org.springframework.cloud.square.retrofit=DEBUG", "retrofit.reactor.enabled=false" },
-		webEnvironment = DEFINED_PORT)
+@SpringBootTest(properties = { "spring.application.name=retrofitnoannotationtest",
+		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
+		"spring.cloud.square.retrofit.reactor.enabled=false" }, webEnvironment = DEFINED_PORT)
 @DirtiesContext
 public class RetrofitNoAnnotationTests extends DefinedPortTests {
 

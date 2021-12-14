@@ -123,7 +123,7 @@ public class DefaultRetrofitClientConfiguration {
 
 	@Configuration(proxyBeanMethods = false)
 	@ConditionalOnClass(ReactorCallAdapterFactory.class)
-	@ConditionalOnProperty(value = "retrofit.reactor.enabled", matchIfMissing = true)
+	@ConditionalOnProperty(value = "spring.cloud.square.retrofit.reactor.enabled", matchIfMissing = true)
 	protected static class RetrofitReactorConfiguration {
 
 		@Bean

@@ -66,9 +66,11 @@ import static org.springframework.cloud.square.retrofit.test.HelloController.get
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
  */
-@SpringBootTest(properties = { "spring.application.name=retrofitclienturltest", "retrofitClient.dynamicUrlPath=/hello2",
-		"retrofitClient.myDynamicHeader=myDynamicHeaderValue", "retrofit.reactor.enabled=false",
-		"spring.cloud.loadbalancer.enabled=false" }, webEnvironment = DEFINED_PORT)
+@SpringBootTest(
+		properties = { "spring.application.name=retrofitclienturltest", "retrofitClient.dynamicUrlPath=/hello2",
+				"retrofitClient.myDynamicHeader=myDynamicHeaderValue",
+				"spring.cloud.square.retrofit.reactor.enabled=false", "spring.cloud.loadbalancer.enabled=false" },
+		webEnvironment = DEFINED_PORT)
 @DirtiesContext
 class RetrofitClientUrlTests extends DefinedPortTests {
 

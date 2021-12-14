@@ -34,7 +34,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass({ OkHttpClient.class, LoadBalancerClient.class })
 @ConditionalOnBean(LoadBalancerClient.class)
-@ConditionalOnProperty(value = "okhttp.loadbalancer.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.cloud.square.okhttp.loadbalancer.enabled", havingValue = "true",
+		matchIfMissing = true)
 public class OkHttpLoadBalancerConfiguration {
 
 	@Bean

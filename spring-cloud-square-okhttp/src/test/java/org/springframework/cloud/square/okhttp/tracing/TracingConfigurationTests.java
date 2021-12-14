@@ -47,7 +47,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Olga Maciaszek-Sharma
  */
-@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "okhttp.tracing.enabled=false")
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = "spring.cloud.square.okhttp.tracing.enabled=false")
 public class TracingConfigurationTests {
 
 	private static final String SERVICE_ID = "testapp";

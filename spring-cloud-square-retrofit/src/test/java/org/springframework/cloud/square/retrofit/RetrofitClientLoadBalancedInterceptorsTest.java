@@ -53,8 +53,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
  */
-@SpringBootTest(properties = { "spring.application.name=retrofitclienturltest", "retrofit.reactor.enabled=false" },
-		webEnvironment = RANDOM_PORT)
+@SpringBootTest(properties = { "spring.application.name=retrofitclienturltest",
+		"spring.cloud.square.retrofit.reactor.enabled=false" }, webEnvironment = RANDOM_PORT)
 @DirtiesContext
 class RetrofitClientLoadBalancedInterceptorsTest extends DefinedPortTests {
 

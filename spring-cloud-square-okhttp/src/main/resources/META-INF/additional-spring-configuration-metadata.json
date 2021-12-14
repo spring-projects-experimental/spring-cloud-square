@@ -3,13 +3,13 @@
 	],
 	"properties": [
 		{
-			"name": "okhttp.loadbalancer.enabled",
+			"name": "spring.cloud.square.okhttp.loadbalancer.enabled",
 			"type": "java.lang.Boolean",
 			"description": "Allows disabling OkHttp Spring Cloud LoadBalancer support.",
 			"defaultValue": "true"
 		},
 		{
-			"name": "okhttp.tracing.enabled",
+			"name": "spring.cloud.square.okhttp.tracing.enabled",
 			"type": "java.lang.Boolean",
 			"description": "Allows disabling OkHttp Spring Cloud Sleuth support.",
 			"defaultValue": "true"
