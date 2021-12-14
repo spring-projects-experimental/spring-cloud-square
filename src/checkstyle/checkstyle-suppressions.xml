@@ -5,4 +5,5 @@
 <suppressions>
 	<suppress files="TestConstants.*" checks="InterfaceIsTypeCheck"/>
 	<suppress files="TestConstants.*" checks="JavadocVariable"/>
+	<suppress files="TracingOkHttpInterceptor.*" checks="InnerAssignment"/>
 </suppressions>

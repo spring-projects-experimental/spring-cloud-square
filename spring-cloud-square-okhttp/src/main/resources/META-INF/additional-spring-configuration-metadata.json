@@ -7,6 +7,12 @@
 			"type": "java.lang.Boolean",
 			"description": "Allows disabling OkHttp Spring Cloud LoadBalancer support.",
 			"defaultValue": "true"
+		},
+		{
+			"name": "okhttp.tracing.enabled",
+			"type": "java.lang.Boolean",
+			"description": "Allows disabling OkHttp Spring Cloud Sleuth support.",
+			"defaultValue": "true"
 		}
 	]
 }
