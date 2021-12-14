@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>spring-cloud-square</artifactId>
-	<version>0.4.0-SNAPSHOT</version>
+	<version>0.4.0-RC1</version>
 	<packaging>pom</packaging>
 
 	<name>Spring Cloud Square</name>
@@ -14,14 +14,14 @@
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
 		<artifactId>spring-cloud-build</artifactId>
-		<version>3.1.0-SNAPSHOT</version>
+		<version>3.1.0</version>
 		<relativePath/>
 	</parent>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring-cloud-commons.version>3.1.1-SNAPSHOT</spring-cloud-commons.version>
-		<spring-cloud-sleuth.version>3.1.1-SNAPSHOT</spring-cloud-sleuth.version>
+		<spring-cloud-commons.version>3.1.0</spring-cloud-commons.version>
+		<spring-cloud-sleuth.version>3.1.0</spring-cloud-sleuth.version>
 	</properties>
 
 	<dependencyManagement>
