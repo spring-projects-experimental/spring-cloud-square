@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.10">
+<title>Spring Cloud Square</title>
+<link rel="stylesheet" href="css/spring.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+.hidden {
+	display: none;
+}
+
+.switch {
+	border-width: 1px 1px 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+	display: inline-block;
+}
+
+.switch--item {
+	padding: 10px;
+	background-color: #ffffff;
+	color: #7a2518;
+	display: inline-block;
+	cursor: pointer;
+}
+
+.switch--item:not(:first-child) {
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #7a2518;
+}
+
+.switch--item.selected {
+	background-color: #7a2519;
+	color: #ffffff;
+}
+
+</style>
+<script type="text/javascript">
+function addBlockSwitches() {
+	for (var primary of document.querySelectorAll('.primary')) {
+		var switchItem = createSwitchItem(primary, createBlockSwitch(primary));
+		switchItem.item.classList.add("selected");
+		var title = primary.querySelector('.title')
+		title.remove();
+	}
+	for (var secondary of document.querySelectorAll('.secondary')) {
+		var primary = findPrimary(secondary);
+		if (primary === null) {
+			console.error("Found secondary block with no primary sibling");
+		}
+		else {
+			var switchItem = createSwitchItem(secondary, primary.querySelector('.switch'));
+			switchItem.content.classList.add("hidden");
+			primary.append(switchItem.content);
+			secondary.remove();
+		}
+	}
+}
+
+function createElementFromHtml(html) {
+	var template = document.createElement('template');
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+function createBlockSwitch(primary) {
+    var blockSwitch = createElementFromHtml('<div class="switch"></div>');
+    primary.prepend(blockSwitch)
+	return blockSwitch;
+}
+
+function findPrimary(secondary) {
+	var candidate = secondary.previousElementSibling;
+	while (candidate != null && !candidate.classList.contains('primary')) {
+		candidate = candidate.previousElementSibling;
+	}
+	return candidate;
+}
+
+function createSwitchItem(block, blockSwitch) {
+	var blockName = block.querySelector('.title').textContent;
+	var content = block.querySelectorAll('.content').item(0);
+	var colist = nextSibling(block, '.colist');
+	if (colist != null) {
+		content.append(colist);
+	}
+	var item = createElementFromHtml('<div class="switch--item">' + blockName + '</div>');
+	item.dataset.blockName = blockName;
+	content.dataset.blockName = blockName;
+	blockSwitch.append(item);
+	return {'item': item, 'content': content};
+}
+
+function nextSibling(element, selector) {
+	var sibling = element.nextElementSibling;
+	while (sibling) {
+		if (sibling.matches(selector)) {
+			return sibling;
+		}
+		sibling = sibling.nextElementSibling;
+	}
+}
+
+function globalSwitch() {
+	document.querySelectorAll(".switch--item").forEach(function(item) {
+		var blockId = blockIdForSwitchItem(item);
+		var handler = function(event) {
+			selectedText = event.target.textContent;
+			window.localStorage.setItem(blockId, selectedText);
+			for (var switchItem of document.querySelectorAll(".switch--item")) {
+				if (blockIdForSwitchItem(switchItem) === blockId && switchItem.textContent === selectedText) {
+					select(switchItem);
+				}
+			}
+		}
+		item.addEventListener("click", handler);
+		if (item.textContent === window.localStorage.getItem(blockId)) {
+			select(item);
+		}
+	});
+}
+
+function select(selected) {
+	for (var child of selected.parentNode.children) {
+		child.classList.remove("selected");
+	}
+	selected.classList.add("selected");
+	for (var child of selected.parentNode.parentNode.children) {
+		if (child.classList.contains("content")) {
+			if (selected.dataset.blockName === child.dataset.blockName) {
+				child.classList.remove("hidden");
+			}
+			else {
+				child.classList.add("hidden");
+			}
+		}
+	}	
+}
+
+function blockIdForSwitchItem(item) {
+	idComponents = []
+	for (var switchItem of item.parentNode.querySelectorAll(".switch--item")) {
+		idComponents.push(switchItem.textContent.toLowerCase());
+	}
+	return idComponents.sort().join("-")
+}
+
+window.onload = function() {
+	addBlockSwitches();
+	globalSwitch();
+};
+
+</script>
+
+</head>
+<body class="book toc2 toc-left">
+<div id="header">
+<h1>Spring Cloud Square</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#quick-start">1. Quick Start</a>
+<ul class="sectlevel2">
+<li><a href="#okhttpclient-with-spring-cloud-loadbalancer">1.1. OkHttpClient with Spring Cloud LoadBalancer</a></li>
+<li><a href="#retrofit-with-okhttpclient-and-spring-cloud-loadbalancer">1.2. Retrofit with OkHttpClient and Spring Cloud LoadBalancer</a></li>
+<li><a href="#retrofit-with-webclient-and-spring-cloud-loadbalancer">1.3. Retrofit with WebClient and Spring Cloud LoadBalancer</a></li>
+</ul>
+</li>
+<li><a href="#okhttpclient-spring-cloud-loadbalancer-integration">2. OkHttpClient Spring Cloud LoadBalancer Integration</a></li>
+<li><a href="#retrofit-integration">3. Retrofit Integration</a>
+<ul class="sectlevel2">
+<li><a href="#load-balanced-retrofit-clients">3.1. Load-balanced Retrofit Clients</a></li>
+<li><a href="#retrofit-reactor-support">3.2. Retrofit Reactor support</a></li>
+<li><a href="#spring-cloud-sleuth-support">3.3. Spring Cloud Sleuth support</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://pivotal.io/platform-as-a-service/migrating-to-cloud-native-application-architectures-ebook">Cloud Native</a> is a style of application development that encourages easy adoption of best practices in the areas of continuous delivery and value-driven development.
+A related discipline is that of building <a href="https://12factor.net/">12-factor Applications</a>, in which development practices are aligned with delivery and operations goals&#8201;&#8212;&#8201;for instance, by using declarative programming and management and monitoring.
+Spring Cloud facilitates these styles of development in a number of specific ways.
+ The starting point is a set of features to which all components in a distributed system need easy access.</p>
+</div>
+<div class="paragraph">
+<p>Many of those features are covered by <a href="https://projects.spring.io/spring-boot">Spring Boot</a>, on which Spring Cloud builds. Some more features are delivered by Spring Cloud as two libraries: Spring Cloud Context and Spring Cloud Commons.
+Spring Cloud Context provides utilities and special services for the <code>ApplicationContext</code> of a Spring Cloud application (bootstrap context, encryption, refresh scope, and environment endpoints). Spring Cloud Commons is a set of abstractions and common classes used in different Spring Cloud implementations (such Spring Cloud Consul).</p>
+</div>
+<div class="paragraph">
+<p>If you get an exception due to "Illegal key size" and you use Sun&#8217;s JDK, you need to install the Java Cryptography Extension (JCE) Unlimited Strength Jurisdiction Policy Files.
+See the following links for more information:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.oracle.com/technetwork/java/javase/downloads/jce-6-download-429243.html">Java 6 JCE</a></p>
+</li>
+<li>
+<p><a href="https://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html">Java 7 JCE</a></p>
+</li>
+<li>
+<p><a href="https://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html">Java 8 JCE</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Extract the files into the JDK/jre/lib/security folder for whichever version of JRE/JDK x64/x86 you use.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Spring Cloud is released under the non-restrictive Apache 2.0 license.
+If you want to contribute to this section of the documentation or if you find an error, you can find the source code and issue trackers for the project at <a href="https://github.com/spring-projects-experimental/spring-cloud-square">GitHub</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Spring Cloud Square provides Spring Cloud LoadBalancer integration for <a href="https://square.github.io/okhttp/">OkHttpClient</a> and <a href="https://square.github.io/retrofit/">Retrofit</a>, as well as a WebClient-backed Retrofit clients.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="quick-start"><a class="anchor" href="#quick-start"></a><a class="link" href="#quick-start">1. Quick Start</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This quick start walks through using <a href="https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer">SC LoadBalancer</a> <a href="https://square.github.io/okhttp/">OkHttpClient</a> integration, load-balanced OkHttpClient-based Retrofit clients, and load-balanced <a href="https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-webclient">WebClient</a>-based <a href="https://square.github.io/retrofit/">Retrofit</a> clients.</p>
+</div>
+<div class="sect2">
+<h3 id="okhttpclient-with-spring-cloud-loadbalancer"><a class="anchor" href="#okhttpclient-with-spring-cloud-loadbalancer"></a><a class="link" href="#okhttpclient-with-spring-cloud-loadbalancer">1.1. OkHttpClient with Spring Cloud LoadBalancer</a></h3>
+<div class="paragraph">
+<p>First, add the <code>spring-cloud-square-okhttp</code> dependency to your project:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-square-okhttp&lt;/artifactId&gt;
+        &lt;version&gt;0.4.0-RC1&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then create a <code>@LoadBalanced</code>-annotated <code>OkHttpClient.Builder</code> bean:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Configuration
+class OkHttpClientConfig{
+@Bean
+@LoadBalanced
+public OkHttpClient.Builder okHttpClientBuilder() {
+    return new OkHttpClient.Builder();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you can use the <code>serviceId</code> or virtual hostname rather than an actual <code>host:port</code> in your requests&#8201;&#8212;&#8201;SC LoadBalancer resolves it by selecting one of the available service instances.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">Request request = new Request.Builder()
+                        .url("http://serviceId/hello").build();
+Response response = builder.build().newCall(request).execute();</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="retrofit-with-okhttpclient-and-spring-cloud-loadbalancer"><a class="anchor" href="#retrofit-with-okhttpclient-and-spring-cloud-loadbalancer"></a><a class="link" href="#retrofit-with-okhttpclient-and-spring-cloud-loadbalancer">1.2. Retrofit with OkHttpClient and Spring Cloud LoadBalancer</a></h3>
+<div class="paragraph">
+<p>First, add the <code>spring-cloud-square-retrofit</code>  and <code>spring-cloud-square-okhttp</code> dependencies to your project:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-square-retrofit&lt;/artifactId&gt;
+        &lt;version&gt;0.4.0-RC1&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-square-okhttp&lt;/artifactId&gt;
+        &lt;version&gt;0.4.0-RC1&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the <code>@EnableRetrofitClients</code> annotation to let us automatically instantiate and inject Retrofit clients for you. Then create a <code>@LoadBalanced</code>-annotated <code>OkHttpClient.Builder</code> bean to be used under the hood:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Configuration
+@EnableRetrofitClients
+class OkHttpClientConfig {
+
+@Bean
+@LoadBalanced
+public OkHttpClient.Builder okHttpClientBuilder() {
+    return new OkHttpClient.Builder();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a Retrofit client and annotate it with <code>@RetrofitClient</code>, passing the <code>serviceId</code> of your service as argument (the annotation can also be used to pass a custom configuration that contains user-crated interceptors for the Retrofit client):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@RetrofitClient("serviceId")
+interface HelloClient {
+    @GET("/")
+    Call&lt;String&gt; hello();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Make sure to use Retrofit method annotations, such as <code>@GET("/")</code>.
+You can now inject the Retrofit client and use it to run load-balanced calls (by using <code>serviceId</code> instead of actual <code>host:port</code>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">class AService {
+
+    @Autowired
+    HelloClient client;
+
+    public String hello() throws IOException {
+        return client.hello().execute().body();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We created a full <a href="https://github.com/spring-cloud-samples/spring-cloud-square-retrofit-web">sample for load-balanced-OkHttpClient-based Retrofit clients</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="retrofit-with-webclient-and-spring-cloud-loadbalancer"><a class="anchor" href="#retrofit-with-webclient-and-spring-cloud-loadbalancer"></a><a class="link" href="#retrofit-with-webclient-and-spring-cloud-loadbalancer">1.3. Retrofit with WebClient and Spring Cloud LoadBalancer</a></h3>
+<div class="paragraph">
+<p>First, add the <code>spring-cloud-square-retrofit</code> and <code>spring-boot-starter-webflux</code> starter dependencies to your project:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-square-retrofit&lt;/artifactId&gt;
+        &lt;version&gt;0.4.0-RC1&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-webflux&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Use the <code>@EnableRetrofitClients</code> annotation to let us automatically instantiate and inject Retrofit clients for you. Then create a <a href="https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#webclinet-loadbalancer-client"><code>@LoadBalanced</code>-annotated <code>WebClient.Builder</code> bean</a> to be used under the hood:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Configuration
+@EnableRetrofitClients
+class OkHttpClientConfig {
+
+@Bean
+@LoadBalanced
+public WebClient.Builder webClientBuilder() {
+    return WebClient.builder();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a Retrofit client and annotate it with <code>@RetrofitClient</code>, passing the <code>serviceId</code> of your service as argument:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@RetrofitClient("serviceId")
+interface HelloClient {
+    @GET("/")
+    Mono&lt;String&gt; hello();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Make sure to use Retrofit method annotations, such as <code>@GET("/")</code>.
+You can now inject the Retrofit client and use it to run load-balanced calls (by using <code>serviceId</code> instead of actual <code>host:port</code>):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">class AService {
+
+    @Autowired
+    HelloClient client;
+
+    public String hello() throws IOException {
+        return client.hello();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We created a full <a href="https://github.com/spring-cloud-samples/spring-cloud-square-retrofit-webclient">sample for load-balanced-WebClient-based Retrofit clients</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+As the currently available release is a milestone, you need to add the Spring Milestone repository link to your projects for all the examples presented in this blog entry:
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;repositories&gt;
+    &lt;repository&gt;
+        &lt;id&gt;spring-milestones&lt;/id&gt;
+        &lt;url&gt;https://repo.spring.io/milestone&lt;/url&gt;
+    &lt;/repository&gt;
+&lt;/repositories&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We recommend using dependency management for other Spring Cloud dependencies:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xml" data-lang="xml">&lt;dependencyManagement&gt;
+        &lt;dependencies&gt;
+            &lt;dependency&gt;
+                &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+                &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+                &lt;version&gt;${spring-cloud.version}&lt;/version&gt;
+                &lt;type&gt;pom&lt;/type&gt;
+                &lt;scope&gt;import&lt;/scope&gt;
+            &lt;/dependency&gt;
+        &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="okhttpclient-spring-cloud-loadbalancer-integration"><a class="anchor" href="#okhttpclient-spring-cloud-loadbalancer-integration"></a><a class="link" href="#okhttpclient-spring-cloud-loadbalancer-integration">2. OkHttpClient Spring Cloud LoadBalancer Integration</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An interceptor is added to the <code>OkHttpClient</code> created by auto-configuration to resolve the scheme, host, and port from Spring Cloud LoadBalancer and rewrite the URL.</p>
+</div>
+<div class="paragraph">
+<p>You can access this functionality by annotating <code>OkHttpClient.Builder</code> beans with <code>@LoadBalanced</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Configuration
+class OkHttpClientConfig{
+@Bean
+@LoadBalanced
+public OkHttpClient.Builder okHttpClientBuilder() {
+    return new OkHttpClient.Builder();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then you can use the <code>serviceId</code> or virtual hostname rather than an actual <code>host:port</code> in your requests&#8201;&#8212;&#8201;SC LoadBalancer resolves it by selecting one of the available service instances:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">Request request = new Request.Builder()
+                        .url("http://serviceId/hello").build();
+Response response = builder.build().newCall(request).execute();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also <a href="https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#custom-loadbalancer-configuration">use the <code>@LoadBalancerClient</code> and <code>@LoadBalancerClients</code> annotations to pass custom configuration</a> to load-balanced OkHttpClient instances.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>This integration supports all the LoadBalancer features. You can read more about them in the https://docs.spring.io/spring-cloud-commons/docs/current/reference/html/#spring-cloud-loadbalancer[Spring Cloud Commons documentation].</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also disable OkHttpClient load-balancing via properties, by setting the value of <code>spring.cloud.square.okhttp.loadbalancer.enabled</code> to <code>false</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="retrofit-integration"><a class="anchor" href="#retrofit-integration"></a><a class="link" href="#retrofit-integration">3. Retrofit Integration</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We provide Spring Boot and Spring Cloud LoadBalancer integration for <a href="https://square.github.io/okhttp/">Retrofit</a>, which is a declarative HTTP client from Square.</p>
+</div>
+<div class="paragraph">
+<p>To enable and instantiate Retrofit clients, use the <code>@EnableRetrofitClients</code> annotation over a Spring <code>@Configuration</code> class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@EnableRetrofitClients(clients = TestClient.class, defaultConfiguration = LoggingRetrofitConfig.class)
+@Configuration
+class AppConfiguration{
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It scans for interfaces that declare they are clients (through <code>@RetrofitClient</code>). You can further control the scope of the scan by specifying packages or client names in the annotation parameters. You can also use the <code>defaultConfiguration</code> parameter to specify the default config class for all your Retrofit clients.</p>
+</div>
+<div class="paragraph">
+<p>You can create load-balanced Retrofit client beans by annotating a Retrofit interface with <code>@RetrofitClient</code>.</p>
+</div>
+<div class="paragraph">
+<p>The next two listings show examples. The first one uses an <code>OkHttpClient</code>-specific <code>Call</code> interface in method signatures. You can use the second one with a <code>WebClient</code>-backed implementation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@RetrofitClient("serviceId")
+interface HelloClient {
+    @GET("/")
+    Call&lt;String&gt; hello();
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@RetrofitClient("serviceId")
+interface HelloClient {
+    @GET("/")
+    Mono&lt;String&gt; hello();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>@RetrofitClient</code> takes a <code>value</code> (alias <code>name</code>) argument, that also indicates the <code>serviceId</code> that should be used during load-balancing.</p>
+</div>
+<div class="paragraph">
+<p>If you do not wish for the calls to be load-balanced, you should also use the <code>url</code> parameter, that allows you to set the full url, with host and port specified explicitly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@RetrofitClient(name = "localapp", url = "http://localhost:8080")
+    protected interface TestClient {
+
+        @GET("/hello")
+        Call&lt;Hello&gt; getHello();
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apart from setting the URL parameter, the <code>@RetrofitClient</code> annotation lets you specify a <code>qualifier</code> and pass a custom <code>configuration</code> class that you can use to provide or override OkHttp <code>Interceptor</code> beans:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@RetrofitClient(name = "localapp", configuration = CustomRetrofitConfig.class)
+    protected interface TestClient {
+
+        @GET("/hello")
+        Call&lt;Hello&gt; getHello();
+}
+
+class CustomRetrofitConfig {
+
+        @Bean
+        public Interceptor interceptor1() {
+            return chain -&gt; {
+                Request request = chain.request().newBuilder().addHeader(MYHEADER1, "myheader1value").build();
+                return chain.proceed(request);
+            };
+        }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The configurations passed by the <code>@RetrofitClient</code> and <code>@EnableRetrofitClients</code> annotations behave similarly to the ones passed via <code>@LoadBalancerClient</code> and <code>@LoadBalancerClients</code> annotations. They are loaded into separate child contexts and should not be annotated with <code>@Configuration</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The <code>RetrofitClient</code> bean provided by Spring Cloud Square is set as <code>primary</code> by default. If you wish to provide a different <code>RetrofitClient</code> bean instead, you can change that behaviour by setting the value of <code>spring.cloud.square.retrofit.primary-retrofit-client</code> property to <code>false</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="load-balanced-retrofit-clients"><a class="anchor" href="#load-balanced-retrofit-clients"></a><a class="link" href="#load-balanced-retrofit-clients">3.1. Load-balanced Retrofit Clients</a></h3>
+<div class="paragraph">
+<p>To use Spring Cloud LoadBalancer for instance selection and instance data retrieval, make sure you instantiate either a <code>@LoadBalanced OkHttpClient.Builder</code> (for a blocking implementation) or a <code>@LoadBalanced Webclient.Builder</code> (for a reactive implementation) bean in a <code>@Configuration</code>-annotated class in your application:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Configuration
+@EnableRetrofitClients
+class OkHttpClientConfig {
+
+@Bean
+@LoadBalanced
+public OkHttpClient.Builder okHttpClientBuilder() {
+    return new OkHttpClient.Builder();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Configuration
+@EnableRetrofitClients
+class OkHttpClientConfig {
+
+@Bean
+@LoadBalanced
+public WebClient.Builder webClientBuilder() {
+    return WebClient.builder();
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>They are used under the hood to run load-balanced HTTP requests.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You can create various instances of <code>WebClient.Builder</code> with different setup. If a <code>@LoadBalanced WebClient.Builder</code> bean is found with name matching the pattern <code>[retrofit-context-name]WebClientBuilder</code>, it will be picked for the Retrofit context in question, otherwise the first found <code>@LoadBalaced WebClient.Builder</code> bean will be picked.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="retrofit-reactor-support"><a class="anchor" href="#retrofit-reactor-support"></a><a class="link" href="#retrofit-reactor-support">3.2. Retrofit Reactor support</a></h3>
+<div class="paragraph">
+<p>When <code>ReactorCallAdapterFactory</code> is on the classpath (provided by <code>retrofit2-reactor-adapter</code> dependency), we also instantiate a bean of this type, by using available <code>Scheduler</code> (if present). You can disable this functionality in properties by setting the value of <code>spring.cloud.square.retrofit.reactor.enabled</code> to <code>false</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="spring-cloud-sleuth-support"><a class="anchor" href="#spring-cloud-sleuth-support"></a><a class="link" href="#spring-cloud-sleuth-support">3.3. Spring Cloud Sleuth support</a></h3>
+<div class="paragraph">
+<p>We provide tracing support by using Spring Cloud Sleuth integration. If you add <code>spring-cloud-starter-sleuth</code> to your project setup, tracing is provided either by the <code>WebClient</code> tracing integration (provided Spring Cloud Sleuth) or by the <code>OkHttpClient</code> tracing integration (provided by the <code>spring-cloud-square-okhttp module</code>).</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can disable OkHttp tracing support by setting the value of <code>spring.cloud.square.okhttp.tracing.enabled</code> to <code>false</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script type="text/javascript" src="js/tocbot/tocbot.min.js"></script>
+<script type="text/javascript" src="js/toc.js"></script>
+</body>
+</html>
