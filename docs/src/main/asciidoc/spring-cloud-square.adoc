@@ -166,7 +166,7 @@ NOTE: You can create various instances of `WebClient.Builder` with different set
 
 When `ReactorCallAdapterFactory` is on the classpath (provided by `retrofit2-reactor-adapter` dependency), we also instantiate a bean of this type, by using available `Scheduler` (if present). You can disable this functionality in properties by setting the value of `spring.cloud.square.retrofit.reactor.enabled` to `false`.
 
-=== Spring Cloud Sleuth support
+== Spring Cloud Sleuth support
 
 We provide tracing support by using Spring Cloud Sleuth integration. If you add `spring-cloud-starter-sleuth` to your project setup, tracing is provided either by the `WebClient` tracing integration (provided Spring Cloud Sleuth) or by the `OkHttpClient` tracing integration (provided by the `spring-cloud-square-okhttp module`).
 
