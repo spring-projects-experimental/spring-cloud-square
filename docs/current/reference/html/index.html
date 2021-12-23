@@ -177,9 +177,9 @@ window.onload = function() {
 <ul class="sectlevel2">
 <li><a href="#load-balanced-retrofit-clients">3.1. Load-balanced Retrofit Clients</a></li>
 <li><a href="#retrofit-reactor-support">3.2. Retrofit Reactor support</a></li>
-<li><a href="#spring-cloud-sleuth-support">3.3. Spring Cloud Sleuth support</a></li>
 </ul>
 </li>
+<li><a href="#spring-cloud-sleuth-support">4. Spring Cloud Sleuth support</a></li>
 </ul>
 </div>
 </div>
@@ -671,8 +671,11 @@ You can create various instances of <code>WebClient.Builder</code> with differen
 <p>When <code>ReactorCallAdapterFactory</code> is on the classpath (provided by <code>retrofit2-reactor-adapter</code> dependency), we also instantiate a bean of this type, by using available <code>Scheduler</code> (if present). You can disable this functionality in properties by setting the value of <code>spring.cloud.square.retrofit.reactor.enabled</code> to <code>false</code>.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="spring-cloud-sleuth-support"><a class="anchor" href="#spring-cloud-sleuth-support"></a><a class="link" href="#spring-cloud-sleuth-support">3.3. Spring Cloud Sleuth support</a></h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="spring-cloud-sleuth-support"><a class="anchor" href="#spring-cloud-sleuth-support"></a><a class="link" href="#spring-cloud-sleuth-support">4. Spring Cloud Sleuth support</a></h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>We provide tracing support by using Spring Cloud Sleuth integration. If you add <code>spring-cloud-starter-sleuth</code> to your project setup, tracing is provided either by the <code>WebClient</code> tracing integration (provided Spring Cloud Sleuth) or by the <code>OkHttpClient</code> tracing integration (provided by the <code>spring-cloud-square-okhttp module</code>).</p>
 </div>
@@ -687,7 +690,6 @@ You can disable OkHttp tracing support by setting the value of <code>spring.clou
 </td>
 </tr>
 </table>
-</div>
 </div>
 </div>
 </div>
