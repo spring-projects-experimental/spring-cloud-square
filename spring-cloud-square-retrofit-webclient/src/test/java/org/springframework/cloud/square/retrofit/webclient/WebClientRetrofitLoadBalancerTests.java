@@ -66,6 +66,9 @@ class WebClientRetrofitLoadBalancerTests {
 	TestClientWithCustomWebClientBuilder testClientWithCustomWebClientBuilder;
 
 	@Autowired
+	TestClientWithoutLoadBalancedWebClientBuilder testClientWithoutLoadBalancedWebClientBuilder;
+
+	@Autowired
 	private RetrofitContext retrofitContext;
 
 	@Test
@@ -89,6 +92,12 @@ class WebClientRetrofitLoadBalancerTests {
 				.isThrownBy(() -> testClientWithCustomWebClientBuilder.getHello().block());
 	}
 
+	@Test
+	void testCustomWebClientBuilderPickeByRetrofitNameWithoutLoadBalanced() {
+		assertThatExceptionOfType(ExceptionForTest.class)
+				.isThrownBy(() -> testClientWithoutLoadBalancedWebClientBuilder.getHello().block());
+	}
+
 	@RetrofitClient("localapp")
 	protected interface TestClient {
 
@@ -105,9 +114,19 @@ class WebClientRetrofitLoadBalancerTests {
 
 	}
 
+	// FIXME ? don't know how to set 'RANDOM_PORT' for this so far. so I have to point it to github.com temporarily.
+	@RetrofitClient(name = "withoutLoadBalanced", url = "https://github.com/")
+	protected interface TestClientWithoutLoadBalancedWebClientBuilder {
+
+		@GET("/spring-projects-experimental/spring-cloud-square")
+		Mono<Hello> getHello();
+
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@EnableRetrofitClients(clients = { TestClient.class, TestClientWithCustomWebClientBuilder.class })
+	@EnableRetrofitClients(clients = { TestClient.class, TestClientWithCustomWebClientBuilder.class,
+			TestClientWithoutLoadBalancedWebClientBuilder.class })
 	@LoadBalancerClients({ @LoadBalancerClient(name = "localapp", configuration = TestAppConfig.class),
 			@LoadBalancerClient(name = "localapp2", configuration = TestAppConfig.class) })
 	@SuppressWarnings("unused")
@@ -131,6 +150,29 @@ class WebClientRetrofitLoadBalancerTests {
 			return WebClient.builder().filter((request, next) -> {
 				throw new UnsupportedOperationException("Failing WebClient Instance");
 			});
+		}
+
+		@Bean
+		public WebClient.Builder withoutLoadBalancedDefaultWebClientBuilder() {
+			return WebClient.builder();
+		}
+
+		@Bean
+		public WebClient.Builder withoutLoadBalancedWebClientBuilder() {
+			return WebClient.builder().filter((request, next) -> {
+				throw new ExceptionForTest("Failing WebClient Instance From withoutLoadBalancedWebClientBuilder");
+			});
+		}
+
+	}
+
+	protected static class ExceptionForTest extends RuntimeException {
+
+		public ExceptionForTest() {
+		}
+
+		public ExceptionForTest(String message) {
+			super(message);
 		}
 
 	}

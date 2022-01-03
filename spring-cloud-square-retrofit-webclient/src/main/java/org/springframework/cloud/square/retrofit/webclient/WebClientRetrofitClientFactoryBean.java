@@ -48,22 +48,18 @@ public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFa
 
 		if (hasUrl) {
 			// this is not load balanced and needs a WebClient
-			WebClient.Builder nonLoadBalancedBuilder = null;
 			Map<String, WebClient.Builder> instances = context.getInstances(this.name, WebClient.Builder.class);
-			for (Map.Entry<String, WebClient.Builder> entry : instances.entrySet()) {
-				String beanName = entry.getKey();
-				WebClient.Builder clientBuilder = entry.getValue();
-
-				if (applicationContext.findAnnotationOnBean(beanName, LoadBalanced.class) == null) {
-					nonLoadBalancedBuilder = clientBuilder;
-					break;
-				}
-			}
-
-			if (nonLoadBalancedBuilder == null) {
+			List<Map.Entry<String, WebClient.Builder>> webClientBuilders = instances.entrySet().stream().filter(
+					entry -> applicationContext.findAnnotationOnBean(entry.getKey(), LoadBalanced.class) == null)
+					.collect(Collectors.toList());
+			if (webClientBuilders.isEmpty()) {
 				throw new IllegalStateException("No WebClient.Builder bean defined.");
 			}
-			builder.callFactory(new WebClientCallFactory(nonLoadBalancedBuilder.build()));
+			WebClient.Builder selectedWebClientBuilder = webClientBuilders.stream()
+					.filter(entry -> entry.getKey().equals(name + WEB_CLIENT_BUILDER_SUFFIX)).findAny()
+					.orElse(webClientBuilders.stream().findAny().get()).getValue();
+
+			builder.callFactory(new WebClientCallFactory(selectedWebClientBuilder.build()));
 		}
 
 		return builder;
