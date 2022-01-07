@@ -18,6 +18,8 @@ package org.springframework.cloud.square.retrofit.webclient;
 
 import java.util.Objects;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import retrofit2.Retrofit;
@@ -39,6 +41,7 @@ import org.springframework.cloud.square.retrofit.core.RetrofitContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -70,6 +73,22 @@ class WebClientRetrofitLoadBalancerTests {
 
 	@Autowired
 	private RetrofitContext retrofitContext;
+
+	@LocalServerPort
+	private int port;
+
+	@BeforeAll
+	static void init() {
+		int port = SocketUtils.findAvailableTcpPort();
+		System.setProperty("server.port", String.valueOf(port));
+		System.setProperty("retrofit.client.url.tests.url", "http://localhost:" + port);
+	}
+
+	@AfterAll
+	static void destroy() {
+		System.clearProperty("server.port");
+		System.clearProperty("retrofit.client.url.tests.url");
+	}
 
 	@Test
 	void testRetrofitConfiguration() {
@@ -114,11 +133,10 @@ class WebClientRetrofitLoadBalancerTests {
 
 	}
 
-	// FIXME ? don't know how to set 'RANDOM_PORT' for this so far. so I have to point it to github.com temporarily.
-	@RetrofitClient(name = "withoutLoadBalanced", url = "https://github.com/")
+	@RetrofitClient(name = "withoutLoadBalanced", url = "${retrofit.client.url.tests.url}")
 	protected interface TestClientWithoutLoadBalancedWebClientBuilder {
 
-		@GET("/spring-projects-experimental/spring-cloud-square")
+		@GET("/hello")
 		Mono<Hello> getHello();
 
 	}
