@@ -32,6 +32,7 @@ import org.springframework.web.reactive.function.client.WebClient;
  *
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
+ * @author huahouye
  */
 public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFactoryBean {
 

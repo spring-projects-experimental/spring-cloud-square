@@ -53,6 +53,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
+ * @author huahouye
  */
 @SpringBootTest(properties = { "spring.application.name=retrofitclientloadbalancertest",
 		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
@@ -106,13 +107,13 @@ class WebClientRetrofitLoadBalancerTests {
 	}
 
 	@Test
-	void testCustomWebClientBuilderPickeByRetrofitName() {
+	void testCustomWebClientBuilderPickedByRetrofitName() {
 		assertThatExceptionOfType(UnsupportedOperationException.class)
 				.isThrownBy(() -> testClientWithCustomWebClientBuilder.getHello().block());
 	}
 
 	@Test
-	void testCustomWebClientBuilderPickeByRetrofitNameWithoutLoadBalanced() {
+	void testCustomWebClientBuilderPickedByRetrofitNameWithoutLoadBalanced() {
 		assertThatExceptionOfType(ExceptionForTest.class)
 				.isThrownBy(() -> testClientWithoutLoadBalancedWebClientBuilder.getHello().block());
 	}
