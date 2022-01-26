@@ -2,6 +2,16 @@
 
 image::https://github.com/spring-projects-experimental/spring-cloud-square/workflows/Build/badge.svg?style=svg["Build",link="https://github.com/spring-projects-experimental/spring-cloud-square/actions"]
 
+include::intro.adoc[]
+
+== Building
+
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/src/main/asciidoc/building.adoc[]
+
+== Contributing
+
+include::https://raw.githubusercontent.com/spring-cloud/spring-cloud-build/main/docs/src/main/asciidoc/contributing.adoc[]
+
 == Quick Start
 
 include::quickstart.adoc[leveloffset=+1]
