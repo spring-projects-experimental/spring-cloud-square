@@ -157,7 +157,7 @@ class AService {
     @Autowired
     HelloClient client;
 
-	public String hello() throws IOException {
+	public Mono<String> hello() throws IOException {
 		return client.hello();
 	}
 }
