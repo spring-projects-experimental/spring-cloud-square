@@ -53,7 +53,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
- * @author huahouye
+ * @author HouYe Hua
  */
 @SpringBootTest(properties = { "spring.application.name=retrofitclientloadbalancertest",
 		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
