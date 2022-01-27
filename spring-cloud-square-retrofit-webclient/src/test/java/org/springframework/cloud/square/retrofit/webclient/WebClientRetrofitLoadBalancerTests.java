@@ -18,6 +18,8 @@ package org.springframework.cloud.square.retrofit.webclient;
 
 import java.util.Objects;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 import retrofit2.Retrofit;
@@ -39,6 +41,7 @@ import org.springframework.cloud.square.retrofit.core.RetrofitContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.util.SocketUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -50,6 +53,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 /**
  * @author Spencer Gibb
  * @author Olga Maciaszek-Sharma
+ * @author HouYe Hua
  */
 @SpringBootTest(properties = { "spring.application.name=retrofitclientloadbalancertest",
 		"logging.level.org.springframework.cloud.square.retrofit=DEBUG",
@@ -66,7 +70,26 @@ class WebClientRetrofitLoadBalancerTests {
 	TestClientWithCustomWebClientBuilder testClientWithCustomWebClientBuilder;
 
 	@Autowired
+	TestClientWithoutLoadBalancedWebClientBuilder testClientWithoutLoadBalancedWebClientBuilder;
+
+	@Autowired
 	private RetrofitContext retrofitContext;
+
+	@LocalServerPort
+	private int port;
+
+	@BeforeAll
+	static void init() {
+		int port = SocketUtils.findAvailableTcpPort();
+		System.setProperty("server.port", String.valueOf(port));
+		System.setProperty("retrofit.client.url.tests.url", "http://localhost:" + port);
+	}
+
+	@AfterAll
+	static void destroy() {
+		System.clearProperty("server.port");
+		System.clearProperty("retrofit.client.url.tests.url");
+	}
 
 	@Test
 	void testRetrofitConfiguration() {
@@ -84,9 +107,15 @@ class WebClientRetrofitLoadBalancerTests {
 	}
 
 	@Test
-	void testCustomWebClientBuilderPickeByRetrofitName() {
+	void testCustomWebClientBuilderPickedByRetrofitName() {
 		assertThatExceptionOfType(UnsupportedOperationException.class)
 				.isThrownBy(() -> testClientWithCustomWebClientBuilder.getHello().block());
+	}
+
+	@Test
+	void testCustomWebClientBuilderPickedByRetrofitNameWithoutLoadBalanced() {
+		assertThatExceptionOfType(ExceptionForTest.class)
+				.isThrownBy(() -> testClientWithoutLoadBalancedWebClientBuilder.getHello().block());
 	}
 
 	@RetrofitClient("localapp")
@@ -105,9 +134,18 @@ class WebClientRetrofitLoadBalancerTests {
 
 	}
 
+	@RetrofitClient(name = "withoutLoadBalanced", url = "${retrofit.client.url.tests.url}")
+	protected interface TestClientWithoutLoadBalancedWebClientBuilder {
+
+		@GET("/hello")
+		Mono<Hello> getHello();
+
+	}
+
 	@SpringBootConfiguration
 	@EnableAutoConfiguration
-	@EnableRetrofitClients(clients = { TestClient.class, TestClientWithCustomWebClientBuilder.class })
+	@EnableRetrofitClients(clients = { TestClient.class, TestClientWithCustomWebClientBuilder.class,
+			TestClientWithoutLoadBalancedWebClientBuilder.class })
 	@LoadBalancerClients({ @LoadBalancerClient(name = "localapp", configuration = TestAppConfig.class),
 			@LoadBalancerClient(name = "localapp2", configuration = TestAppConfig.class) })
 	@SuppressWarnings("unused")
@@ -131,6 +169,29 @@ class WebClientRetrofitLoadBalancerTests {
 			return WebClient.builder().filter((request, next) -> {
 				throw new UnsupportedOperationException("Failing WebClient Instance");
 			});
+		}
+
+		@Bean
+		public WebClient.Builder withoutLoadBalancedDefaultWebClientBuilder() {
+			return WebClient.builder();
+		}
+
+		@Bean
+		public WebClient.Builder withoutLoadBalancedWebClientBuilder() {
+			return WebClient.builder().filter((request, next) -> {
+				throw new ExceptionForTest("Failing WebClient Instance From withoutLoadBalancedWebClientBuilder");
+			});
+		}
+
+	}
+
+	protected static class ExceptionForTest extends RuntimeException {
+
+		public ExceptionForTest() {
+		}
+
+		public ExceptionForTest(String message) {
+			super(message);
 		}
 
 	}
