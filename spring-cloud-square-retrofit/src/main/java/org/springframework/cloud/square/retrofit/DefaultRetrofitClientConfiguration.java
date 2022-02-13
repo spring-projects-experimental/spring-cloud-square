@@ -39,6 +39,7 @@ import org.springframework.cloud.square.retrofit.support.SpringConverterFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.ConverterFactory;
 import org.springframework.format.support.DefaultFormattingConversionService;
@@ -59,7 +60,6 @@ public class DefaultRetrofitClientConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(ConversionService.class)
 	public DefaultFormattingConversionService retrofitConversionService() {
 		return new DefaultFormattingConversionService();
 	}
@@ -67,7 +67,7 @@ public class DefaultRetrofitClientConfiguration {
 	@Bean
 	@ConditionalOnMissingBean(ConverterFactory.class)
 	public SpringConverterFactory springConverterFactory(ObjectFactory<HttpMessageConverters> messageConverters,
-			ConversionService conversionService) {
+			@Qualifier("retrofitConversionService") ConversionService conversionService) {
 		return new SpringConverterFactory(messageConverters, conversionService);
 	}
 
