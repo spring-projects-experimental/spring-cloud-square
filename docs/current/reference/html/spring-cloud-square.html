@@ -250,7 +250,7 @@ If you want to contribute to this section of the documentation or if you find an
 <pre class="highlight"><code class="language-xml" data-lang="xml">&lt;dependency&gt;
         &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
         &lt;artifactId&gt;spring-cloud-square-okhttp&lt;/artifactId&gt;
-        &lt;version&gt;0.4.0&lt;/version&gt;
+        &lt;version&gt;0.4.1&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
 </div>
 </div>
@@ -291,12 +291,12 @@ Response response = builder.build().newCall(request).execute();</code></pre>
     &lt;dependency&gt;
         &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
         &lt;artifactId&gt;spring-cloud-square-retrofit&lt;/artifactId&gt;
-        &lt;version&gt;0.4.0&lt;/version&gt;
+        &lt;version&gt;0.4.1&lt;/version&gt;
     &lt;/dependency&gt;
     &lt;dependency&gt;
         &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
         &lt;artifactId&gt;spring-cloud-square-okhttp&lt;/artifactId&gt;
-        &lt;version&gt;0.4.0&lt;/version&gt;
+        &lt;version&gt;0.4.1&lt;/version&gt;
     &lt;/dependency&gt;
 &lt;/dependencies&gt;</code></pre>
 </div>
@@ -362,7 +362,7 @@ You can now inject the Retrofit client and use it to run load-balanced calls (by
     &lt;dependency&gt;
         &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
         &lt;artifactId&gt;spring-cloud-square-retrofit&lt;/artifactId&gt;
-        &lt;version&gt;0.4.0&lt;/version&gt;
+        &lt;version&gt;0.4.1&lt;/version&gt;
     &lt;/dependency&gt;
     &lt;dependency&gt;
         &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
@@ -411,7 +411,7 @@ You can now inject the Retrofit client and use it to run load-balanced calls (by
     @Autowired
     HelloClient client;
 
-    public String hello() throws IOException {
+    public Mono&lt;String&gt; hello() throws IOException {
         return client.hello();
     }
 }</code></pre>
@@ -659,7 +659,7 @@ public WebClient.Builder webClientBuilder() {
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-You can create various instances of <code>WebClient.Builder</code> with different setup. If a <code>@LoadBalanced WebClient.Builder</code> bean is found with name matching the pattern <code>[retrofit-context-name]WebClientBuilder</code>, it will be picked for the Retrofit context in question, otherwise the first found <code>@LoadBalaced WebClient.Builder</code> bean will be picked.
+You can create various instances of <code>WebClient.Builder</code> with different setup. If a <code>WebClient.Builder</code> bean is found with name matching the pattern <code>[retrofit-context-name]WebClientBuilder</code>, it will be picked for the Retrofit context in question, otherwise the first found <code>WebClient.Builder</code> bean will be picked.
 </td>
 </tr>
 </table>
