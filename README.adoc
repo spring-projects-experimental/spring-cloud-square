@@ -29,7 +29,7 @@ Extract the files into the JDK/jre/lib/security folder for whichever version of 
 
 == Building
 
-:jdkversion: 1.8
+:jdkversion: 17
 
 === Basic Compile and Test
 
@@ -357,7 +357,7 @@ First, add the `spring-cloud-square-okhttp` dependency to your project:
 <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-square-okhttp</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
 </dependency>
 ----
 
@@ -394,12 +394,12 @@ First, add the `spring-cloud-square-retrofit`  and `spring-cloud-square-okhttp` 
     <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-square-retrofit</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-square-okhttp</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </dependency>
 </dependencies>
 ----
@@ -459,7 +459,7 @@ First, add the `spring-cloud-square-retrofit` and `spring-boot-starter-webflux` 
     <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-square-retrofit</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>
