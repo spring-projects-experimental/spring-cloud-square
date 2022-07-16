@@ -25,6 +25,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  *
  * @author Spencer Gibb
  * @author Dave Syer
+ * @author Michael Wirth
  */
 public class RetrofitContext extends NamedContextFactory<RetrofitClientSpecification> {
 

@@ -18,19 +18,21 @@ package org.springframework.cloud.square.retrofit.webclient;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import retrofit2.Retrofit;
 
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.square.retrofit.core.AbstractRetrofitClientFactoryBean;
 import org.springframework.cloud.square.retrofit.core.RetrofitContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import static java.util.Arrays.stream;
+import static org.springframework.beans.factory.BeanFactoryUtils.beanNamesForAnnotationIncludingAncestors;
 
 /**
  * {@link WebClient}-specific {@link AbstractRetrofitClientFactoryBean} implementation.
@@ -55,18 +57,20 @@ public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFa
 
 		if (hasUrl) {
 			// this is not load balanced and needs a WebClient
+			AnnotationConfigApplicationContext applicationContext = context.getContext(this.name);
 			Map<String, WebClient.Builder> instances = context.getInstances(this.name, WebClient.Builder.class);
-			AnnotationConfigApplicationContext customContext = context.getContext(this.name);
-			List<Map.Entry<String, WebClient.Builder>> webClientBuilders = instances.entrySet().stream()
-					.filter(entry -> findAnnotationOnBean(customContext, entry.getKey(), LoadBalanced.class) == null)
-					.collect(Collectors.toList());
+			getInstancesWithAnnotation(applicationContext, WebClient.Builder.class, LoadBalanced.class).keySet()
+					.forEach(instances::remove);
+
+			Set<Map.Entry<String, WebClient.Builder>> webClientBuilders = instances.entrySet();
+
 			if (webClientBuilders.isEmpty()) {
 				throw new IllegalStateException("No WebClient.Builder bean defined.");
 			}
 			WebClient.Builder selectedWebClientBuilder = webClientBuilders.stream().filter(entry -> {
 				String lookupName = name + WEB_CLIENT_BUILDER_SUFFIX;
 				return entry.getKey().equals(lookupName)
-						|| Arrays.asList(customContext.getAliases(entry.getKey())).contains(lookupName);
+						|| Arrays.asList(applicationContext.getAliases(entry.getKey())).contains(lookupName);
 			}).findAny().orElse(webClientBuilders.stream().findAny().get()).getValue();
 
 			builder.callFactory(new WebClientCallFactory(selectedWebClientBuilder.build()));
@@ -76,11 +80,10 @@ public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFa
 	}
 
 	protected Object loadBalance(Retrofit.Builder builder, RetrofitContext context, String serviceIdUrl) {
-		Map<String, WebClient.Builder> instances = context.getInstances(this.name, WebClient.Builder.class);
-		AnnotationConfigApplicationContext customContext = context.getContext(this.name);
-		List<Map.Entry<String, WebClient.Builder>> loadBalancedWebClientBuilders = instances.entrySet().stream()
-				.filter(entry -> findAnnotationOnBean(customContext, entry.getKey(), LoadBalanced.class) != null)
-				.collect(Collectors.toList());
+		AnnotationConfigApplicationContext applicationContext = context.getContext(this.name);
+		Set<Map.Entry<String, WebClient.Builder>> loadBalancedWebClientBuilders = getInstancesWithAnnotation(
+				applicationContext, WebClient.Builder.class, LoadBalanced.class).entrySet();
+
 		if (loadBalancedWebClientBuilders.isEmpty()) {
 			throw new IllegalStateException(
 					"No WebClient.Builder for loadBalancing defined. Did you forget to include spring-cloud-loadbalancer?");
@@ -89,29 +92,9 @@ public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFa
 		WebClient.Builder selectedWebClientBuilder = loadBalancedWebClientBuilders.stream().filter(entry -> {
 			String lookupName = name + WEB_CLIENT_BUILDER_SUFFIX;
 			return entry.getKey().equals(lookupName)
-					|| Arrays.asList(customContext.getAliases(entry.getKey())).contains(lookupName);
+					|| Arrays.asList(applicationContext.getAliases(entry.getKey())).contains(lookupName);
 		}).findAny().orElse(loadBalancedWebClientBuilders.stream().findAny().get()).getValue();
 		return buildRetrofit(builder, context, selectedWebClientBuilder);
-	}
-
-	private <A extends Annotation> A findAnnotationOnBean(AnnotationConfigApplicationContext customContext,
-			String beanName, Class<A> annotation) {
-		return findAnnotationOnBean(customContext.getBeanFactory(), beanName, annotation);
-	}
-
-	public <A extends Annotation> A findAnnotationOnBean(ConfigurableListableBeanFactory beanFactory, String beanName,
-			Class<A> annotationType) {
-		if (beanFactory == null) {
-			return (A) MergedAnnotation.missing();
-		}
-		A result = beanFactory.findAnnotationOnBean(beanName, annotationType);
-		if (result == null) {
-			if (beanFactory.getParentBeanFactory() instanceof ConfigurableListableBeanFactory) {
-				return findAnnotationOnBean((ConfigurableListableBeanFactory) beanFactory.getParentBeanFactory(),
-						beanName, annotationType);
-			}
-		}
-		return result;
 	}
 
 	private Object buildRetrofit(Retrofit.Builder builder, RetrofitContext context,
@@ -119,6 +102,12 @@ public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFa
 		builder.callFactory(new WebClientCallFactory(loadBalancedWebClientBuilder.build()));
 		Retrofit retrofit = buildAndSave(context, builder);
 		return retrofit.create(this.type);
+	}
+
+	public <T> Map<String, T> getInstancesWithAnnotation(AnnotationConfigApplicationContext context, Class<T> type,
+			Class<? extends Annotation> annotationType) {
+		return stream(beanNamesForAnnotationIncludingAncestors(context, annotationType))
+				.collect(Collectors.toMap(Function.identity(), beanName -> context.getBean(beanName, type)));
 	}
 
 }

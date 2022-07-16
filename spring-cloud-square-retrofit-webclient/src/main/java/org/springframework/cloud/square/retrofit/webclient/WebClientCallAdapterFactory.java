@@ -79,20 +79,12 @@ public class WebClientCallAdapterFactory extends CallAdapter.Factory {
 				isEntity = true;
 			}
 			else {
-				bodyType = (Class<?>) genericType;
+				bodyType = (Class) genericType;
 			}
 			// TODO: support Call directly?
 		}
 		else {
-			if (returnType instanceof ParameterizedType) {
-				bodyType = (Class<?>) ((ParameterizedType) returnType).getActualTypeArguments()[0];
-			}
-			else if (returnType instanceof Class) {
-				bodyType = (Class<?>) returnType;
-			}
-			else {
-				return null;
-			}
+			bodyType = (Class<?>) returnType;
 		}
 
 		boolean toResponse = isResponse;
