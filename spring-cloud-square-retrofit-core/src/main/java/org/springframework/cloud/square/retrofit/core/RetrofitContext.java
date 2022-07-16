@@ -33,7 +33,7 @@ public class RetrofitContext extends NamedContextFactory<RetrofitClientSpecifica
 	}
 
 	@Override
-	protected AnnotationConfigApplicationContext getContext(String name) {
+	public AnnotationConfigApplicationContext getContext(String name) {
 		return super.getContext(name);
 	}
 
