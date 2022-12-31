@@ -19,6 +19,12 @@ package org.springframework.cloud.square.okhttp.loadbalancer;
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.http.HttpClientHandler;
+import io.micrometer.tracing.http.HttpClientRequest;
+import io.micrometer.tracing.http.HttpClientResponse;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -31,8 +37,9 @@ import retrofit2.http.GET;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClient;
@@ -45,7 +52,8 @@ import org.springframework.web.bind.annotation.RestController;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@SpringBootTest(webEnvironment = RANDOM_PORT)
+@SpringBootTest(webEnvironment = RANDOM_PORT, properties = { "debug=true" })
+@AutoConfigureObservability(tracing = false)
 class OkHttpLoadBalancerInterceptorTests {
 
 	// The serviceId that SC LoadBalancer will resolve to host:port
@@ -136,6 +144,26 @@ class OkHttpLoadBalancerInterceptorTests {
 					.baseUrl("http://testapp").client(builder.build())
 					.addConverterFactory(JacksonConverterFactory.create()).build();
 			return retrofit.create(TestAppClient.class);
+		}
+
+		@Bean
+		public HttpClientHandler httpClientHandler(Tracer tracer) {
+			return new HttpClientHandler() {
+				@Override
+				public Span handleSend(HttpClientRequest request) {
+					request.header("X-B3-TraceId", "traceId");
+					return tracer.nextSpan();
+				}
+
+				@Override
+				public Span handleSend(HttpClientRequest request, TraceContext parent) {
+					return handleSend(request);
+				}
+
+				@Override
+				public void handleReceive(HttpClientResponse response, Span span) {
+				}
+			};
 		}
 
 	}

@@ -20,18 +20,18 @@ import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import retrofit2.Retrofit;
 
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.square.retrofit.core.AbstractRetrofitClientFactoryBean;
 import org.springframework.cloud.square.retrofit.core.RetrofitContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static java.util.Arrays.stream;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import static org.springframework.beans.factory.BeanFactoryUtils.beanNamesForAnnotationIncludingAncestors;
 
 /**
@@ -57,7 +57,7 @@ public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFa
 
 		if (hasUrl) {
 			// this is not load balanced and needs a WebClient
-			AnnotationConfigApplicationContext applicationContext = context.getContext(this.name);
+			GenericApplicationContext applicationContext = context.getContext(this.name);
 			Map<String, WebClient.Builder> instances = context.getInstances(this.name, WebClient.Builder.class);
 			getInstancesWithAnnotation(applicationContext, WebClient.Builder.class, LoadBalanced.class).keySet()
 					.forEach(instances::remove);
@@ -80,7 +80,7 @@ public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFa
 	}
 
 	protected Object loadBalance(Retrofit.Builder builder, RetrofitContext context, String serviceIdUrl) {
-		AnnotationConfigApplicationContext applicationContext = context.getContext(this.name);
+		GenericApplicationContext applicationContext = context.getContext(this.name);
 		Set<Map.Entry<String, WebClient.Builder>> loadBalancedWebClientBuilders = getInstancesWithAnnotation(
 				applicationContext, WebClient.Builder.class, LoadBalanced.class).entrySet();
 
@@ -104,10 +104,12 @@ public class WebClientRetrofitClientFactoryBean extends AbstractRetrofitClientFa
 		return retrofit.create(this.type);
 	}
 
-	public <T> Map<String, T> getInstancesWithAnnotation(AnnotationConfigApplicationContext context, Class<T> type,
+	public <T> Map<String, T> getInstancesWithAnnotation(GenericApplicationContext context, Class<T> type,
 			Class<? extends Annotation> annotationType) {
 		return stream(beanNamesForAnnotationIncludingAncestors(context, annotationType))
-				.collect(Collectors.toMap(Function.identity(), beanName -> context.getBean(beanName, type)));
+				.collect(toMap(identity(), context::getBean)).entrySet().stream()
+				.filter(it -> type.isAssignableFrom(it.getValue().getClass()))
+				.collect(toMap(Map.Entry::getKey, it -> (T) it.getValue()));
 	}
 
 }

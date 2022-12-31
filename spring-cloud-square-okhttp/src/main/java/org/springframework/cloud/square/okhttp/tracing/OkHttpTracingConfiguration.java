@@ -16,12 +16,12 @@
 
 package org.springframework.cloud.square.okhttp.tracing;
 
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.http.HttpClientHandler;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.sleuth.CurrentTraceContext;
-import org.springframework.cloud.sleuth.TraceContext;
-import org.springframework.cloud.sleuth.http.HttpClientHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,16 +31,16 @@ import org.springframework.context.annotation.Configuration;
  * @author Olga Maciaszek-Sharma
  */
 @Configuration
-@ConditionalOnClass(TraceContext.class)
-@ConditionalOnBean({ CurrentTraceContext.class, HttpClientHandler.class })
+@ConditionalOnClass(Tracer.class)
+@ConditionalOnBean(HttpClientHandler.class)
+// @ConditionalOnBean({ Tracer.class, HttpClientHandler.class })
 @ConditionalOnProperty(value = "spring.cloud.square.okhttp.tracing.enabled", havingValue = "true",
 		matchIfMissing = true)
 public class OkHttpTracingConfiguration {
 
 	@Bean
-	public TracingOkHttpInterceptor tracingOkHttpInterceptor(CurrentTraceContext currentTraceContext,
-			HttpClientHandler httpClientHandler) {
-		return new TracingOkHttpInterceptor(currentTraceContext, httpClientHandler);
+	public TracingOkHttpInterceptor tracingOkHttpInterceptor(Tracer tracer, HttpClientHandler httpClientHandler) {
+		return new TracingOkHttpInterceptor(tracer, httpClientHandler);
 	}
 
 }

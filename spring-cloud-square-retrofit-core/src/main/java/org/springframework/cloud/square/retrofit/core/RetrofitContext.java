@@ -17,7 +17,7 @@
 package org.springframework.cloud.square.retrofit.core;
 
 import org.springframework.cloud.context.named.NamedContextFactory;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 
 /**
  * A factory that creates instances of retrofit classes. It creates a Spring
@@ -34,7 +34,7 @@ public class RetrofitContext extends NamedContextFactory<RetrofitClientSpecifica
 	}
 
 	@Override
-	public AnnotationConfigApplicationContext getContext(String name) {
+	public GenericApplicationContext getContext(String name) {
 		return super.getContext(name);
 	}
 

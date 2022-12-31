@@ -28,7 +28,7 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -155,7 +155,7 @@ public abstract class AbstractRetrofitClientFactoryBean
 		Retrofit retrofit = builder.build();
 
 		// add retrofit to this.names context as a bean
-		AnnotationConfigApplicationContext applicationContext = context.getContext(this.name);
+		GenericApplicationContext applicationContext = context.getContext(this.name);
 		applicationContext.registerBean(Retrofit.class, () -> retrofit);
 		return retrofit;
 	}

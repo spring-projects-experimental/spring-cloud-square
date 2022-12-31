@@ -21,25 +21,27 @@ import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Collections;
 
+import io.micrometer.tracing.CurrentTraceContext;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.TraceContext;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.http.HttpClientHandler;
+import io.micrometer.tracing.http.HttpClientRequest;
+import io.micrometer.tracing.http.HttpClientResponse;
+import io.micrometer.tracing.http.HttpRequestParser;
+import io.micrometer.tracing.http.HttpResponseParser;
 import okhttp3.Connection;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.jetbrains.annotations.NotNull;
 
-import org.springframework.cloud.sleuth.CurrentTraceContext;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.TraceContext;
-import org.springframework.cloud.sleuth.http.HttpClientHandler;
-import org.springframework.cloud.sleuth.http.HttpClientRequest;
-import org.springframework.cloud.sleuth.http.HttpClientResponse;
-import org.springframework.cloud.sleuth.http.HttpRequestParser;
-import org.springframework.cloud.sleuth.http.HttpResponseParser;
 import org.springframework.lang.Nullable;
 
 /**
  * An implementation fo {@link Interceptor} that provides tracing support. This
  * implementation is taken from OpenZipkin Brave.
- *
+ * <p>
  * The Brave-specific interfaces have been replaced with Spring Cloud Sleuth interfaces.
  * This standardizes a way to instrument http clients, particularly in a way that
  * encourages use of portable customizations via {@link HttpRequestParser} and
@@ -56,8 +58,8 @@ public class TracingOkHttpInterceptor implements Interceptor {
 
 	final HttpClientHandler httpClientHandler;
 
-	public TracingOkHttpInterceptor(CurrentTraceContext currentTraceContext, HttpClientHandler httpClientHandler) {
-		this.currentTraceContext = currentTraceContext;
+	public TracingOkHttpInterceptor(Tracer tracer, HttpClientHandler httpClientHandler) {
+		this.currentTraceContext = tracer.currentTraceContext();
 		this.httpClientHandler = httpClientHandler;
 	}
 
@@ -73,6 +75,7 @@ public class TracingOkHttpInterceptor implements Interceptor {
 		span.remoteIpAndPort(socketAddress.getHostString(), socketAddress.getPort());
 	}
 
+	@NotNull
 	@Override
 	public Response intercept(Chain chain) throws IOException {
 		RequestWrapper request = new RequestWrapper(chain.request());
@@ -90,7 +93,7 @@ public class TracingOkHttpInterceptor implements Interceptor {
 		Response response = null;
 		Throwable error = null;
 
-		try (CurrentTraceContext.Scope scope = currentTraceContext.newScope(span.context())) {
+		try (CurrentTraceContext.Scope ignored = currentTraceContext.newScope(span.context())) {
 			return response = chain.proceed(request.build());
 		}
 		catch (Throwable throwable) {
